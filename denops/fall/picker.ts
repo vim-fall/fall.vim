@@ -21,7 +21,10 @@ import { Scheduler } from "./lib/scheduler.ts";
 import { Cmdliner } from "./util/cmdliner.ts";
 import { isIncrementalMatcher } from "./util/predicate.ts";
 import { buildMappingHelpPages } from "./util/mapping.ts";
-import { emitPickerEnter, emitPickerLeave } from "./util/emitter.ts";
+import {
+  emitPickerEnterSystem,
+  emitPickerLeaveSystem,
+} from "./util/emitter.ts";
 import { CollectProcessor } from "./processor/collect.ts";
 import { MatchProcessor } from "./processor/match.ts";
 import { SortProcessor } from "./processor/sort.ts";
@@ -276,11 +279,11 @@ export class Picker<T extends Detail> implements AsyncDisposable {
       },
     );
 
-    // Emit 'FallPickerEnter/FallPickerLeave' autocmd
+    // Emit 'FallPickerEnterSystem/FallPickerLeaveSystem' autocmd
     stack.defer(async () => {
-      await emitPickerLeave(denops, this.#name);
+      await emitPickerLeaveSystem(denops, this.#name);
     });
-    await emitPickerEnter(denops, this.#name);
+    await emitPickerEnterSystem(denops, this.#name);
 
     return stack.move();
   }

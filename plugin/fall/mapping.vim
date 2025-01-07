@@ -108,6 +108,6 @@ if !get(g:, 'fall_disable_default_mapping')
 
   augroup fall_mapping_plugin
     autocmd!
-    autocmd User FallPickerEnter:* call s:map_picker()
+    autocmd User FallPickerEnterSystem:* call s:map_picker()
   augroup END
 endif
