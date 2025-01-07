@@ -8,16 +8,259 @@ License: MIT License (See LICENSE)
 CONTENTS					*fall-contents*
 
 INTRODUCTION			|fall-introduction|
+REQUIREMENTS			|fall-requirements|
 
 
 =============================================================================
 INTRODUCTION					*fall-introduction*
 
-Fall (*fall.vim*) is a yet another fuzzy finder for Vim/Neovim written
-in Denops.
+Fall (*fall.vim*) is a yet another Fuzzy Finder for Vim/Neovim.
 
-Denops: https://github.com/vim-denops/denops.vim
+It has the following distinct features
 
+	- Quick help with <F1> key
+	- Support multiple matchers, sorters, renderers, and previewers
+	- Submatch for fine-grained filtering
+	- Action selector to select an action to invoke
+	- Customizable with TypeScript
+
+=============================================================================
+REQUIREMENTS					*fall-requirements*
+
+Fall is written in denops so users need to install denops.vim
+
+denops.vim~
+	An ecosystem for writing Vim/Neovim plugin in Deno.
+	https://github.com/vim-denops/denops.vim
+
+Additionally, the "nerdfont" renderer is enabled by default so configure your
+terminal to use a Nerd Font to display the icons correctly.
+
+NerdFont~
+	A collection of over 10,000 icons that are compatible with popular
+	programming fonts.
+	https://www.nerdfonts.com/
+
+Disable the "nerdfont" renderer by removing it from the "renderers" option in
+the "custom.ts" file if you don't want to use the Nerd Font. See
+|fall-customization| for more information about the customization.
+
+=============================================================================
+USAGE						*fall-usage*
+
+Fall provides a command |:Fall| which opens a floating window to filter the
+specified source. For example, to filter the files in the current directory,
+"file" source like this:
+>
+	:Fall file
+<
+Then you can filter the files in the current directory with a picker window.
+If you want to filter the files in the specified directory, you can pass the
+directory path as an argument like this:
+>
+	:Fall file /path/to/directory
+<
+Or if you want to filter the lines in the current buffer, you can use the
+"line" source like this:
+>
+	:Fall line
+
+In the picker window, you can use the following key mappings. Note that the
+actual key mappings may vary depending on the configuration and you can
+confirm the key mappings by invoking the help with the <F1> key.
+
+	<CR>	Invoke the default action on the current or selected item(s)
+	<Tab>	Open an action selector and invoke the selected action
+	<C-,>	Select or unselect the current item
+	<C-n>	Move the cursor to the next item
+	<C-p>	Move the cursor to the previous item
+	<Down>	Move the cursor in preview window to the next line
+	<Up>	Move the cursor in preview window to the previous line
+	<F1>	Show help
+	<F2>	Switch to the next matcher
+	<F3>	Switch to the next sorter
+	<F4>	Switch to the next renderer
+	<F5>	Switch to the next previewer
+<
+See |fall-configuration-mappings| for more information about the mappings.
+
+
+=============================================================================
+CONFIGURATION					*fall-configuration*
+
+=============================================================================
+CUSTOMIZATION					*fall-customization*
+
+>ts
+	import type { Entrypoint } from "jsr:@vim-fall/custom";
+	import * as builtin from "jsr:@vim-fall/std/builtin";
+
+	export const main: Entrypoint = ({
+	  definePickerFromSource,
+	  definePickerFromCurator,
+	}) => {
+	  // Define "file" picker
+	  definePickerFromSource("file", builtin.source.file, {
+	    matchers: [builtin.matcher.fzf],
+	    renderers: [
+	      builtin.renderer.nerdfont,
+	      builtin.renderer.noop,
+	    ],
+	    actions: {
+	      ...builtin.action.defaultOpenActions,
+	      ...builtin.action.defaultSystemopenActions,
+	      ...builtin.action.defaultCdActions,
+	      ...builtin.action.defaultEchoActions,
+	      ...builtin.action.defaultYankActions,
+	    },
+	    defaultAction: "open",
+	  });
+	  // Define "git-grep" picker
+	  definePickerFromCurator("git-grep", builtin.curator.gitGrep, {
+	    renderers: [
+	      builtin.renderer.nerdfont,
+	      builtin.renderer.noop,
+	    ],
+	    actions: {
+	      ...builtin.action.defaultOpenActions,
+	      ...builtin.action.defaultSystemopenActions,
+	      ...builtin.action.defaultCdActions,
+	      ...builtin.action.defaultEchoActions,
+	      ...builtin.action.defaultYankActions,
+	    },
+	    defaultAction: "open",
+	  });
+	};
+<
+	See "default.custom.ts" file in "denops/fall/_assets" directory for
+	the default configuration.
+
+
+=============================================================================
+INTERFACE					*fall-interface*
+
+-----------------------------------------------------------------------------
+COMMAND						*fall-command*
+
+							*:Fall*
+:Fall {source} [{cmdarg}]
+	Open a picker window to filter the specified {source}. The {source} is
+	a picker name defined in "custom.ts" file opened by the |:FallCustom|
+	command. The {cmdarg} is a command argument passed to the source.
+
+							*:FallCustom*
+:FallCustom
+	Open a "custom.ts" file to customize the picker. The "custom.ts" file
+	is a TypeScript file which exports a function named "main" that
+	defines pickers. When user update the file, the picker is reloaded
+	automatically by the |:FallCustomReload| command.
+
+	See |g:fall_custom_path| for the path of the "custom.ts" file.
+
+							*:FallCustomReload*
+:FallCustomReload
+	Reload the "custom.ts" file to apply the changes. Note that Deno
+	caches the module in memory so the changes may not be applied until
+	the Denops process is restarted.
+
+	See |:FallCustomRecache| for the command to recache the module cache.
+
+							*:FallCustomRecache*
+:FallCustomRecache
+	Recache the Deno's local module cache. This command is useful when
+	you want to update the dependencies in the "custom.ts" file.
+
+-----------------------------------------------------------------------------
+AUTOCMD						*fall-autocmd*
+
+						*FallPickerEnter*
+FallPickerEnter:{name}
+	An |User| |autocmd| triggered when the picker window of the {name}
+	picker is entered.
+
+	Use this event to define custom key mappings like:
+>vim
+	function! s:my_fall() abort
+	  " Use <Up> and <Down> to navigate instead of <C-n> and <C-p>
+	  cnoremap <nowait> <Up> <Plug>(fall-list-prev)
+	  cnoremap <nowait> <Down> <Plug>(fall-list-next)
+	  " Disable horizontal scroll
+	  cnoremap <nowait> <Nop> <Plug>(fall-list-left)
+	  cnoremap <nowait> <Nop> <Plug>(fall-list-right)
+	  " Use <C-x> and <C-v> to open in split window
+	  cnoremap <nowait> <C-x> <Cmd>call fall#action('open:split')<CR>
+	  cnoremap <nowait> <C-v> <Cmd>call fall#action('open:vsplit')<CR>
+	endfunction
+
+	augroup my_fall
+	  autocmd!
+	  autocmd User FallPickerEnter:* call s:my_fall()
+	augroup END
+<
+	Note that command mappings defined after this autocmd will be
+	discarded prior to |FallPickerLeave| event so you won't need to
+	invoke |:cunmap| command to remove the mappings.
+
+	See |FallPickerLeave| for the event triggered when the picker window
+	is leaved.
+
+						*FallPickerLeave*
+FallPickerLeave:{name}
+	An |User| |autocmd| triggered when the picker window of the {name}
+	picker is leaved.
+
+	See |FallPickerEnter| for the event triggered when the picker window
+	is entered.
+
+						*FallCustomLoaded*
+FallCustomLoaded
+	An |User| |autocmd| triggered when the "custom.ts" file is loaded.
+	See |:FallCustomReload| for the command to reload the "custom.ts"
+	file.
+
+						*FallCustomRecached*
+FallCustomRecached
+	An |User| |autocmd| triggered when the Deno's local module cache of
+	dependencies in the "custom.ts" file is recached.
+	See |:FallCustomRecache| for the command to recache the module cache.
+
+						*FallPreviewRendered*
+FallPreviewRendered:{filename}
+	An |User| |autocmd| triggered when the preview window of the picker
+	window is rendered. The {filename} is the name of the file rendered.
+
+	Use this event to configure the preview window like:
+>vim
+	function! s:my_fall_preview() abort
+	  " Enable line number on the preview window (Not available on Vim)
+	  setlocal number
+	endfunction
+
+	augroup my_fall_preview
+	  autocmd!
+	  autocmd User FallPreviewRendered:* call s:my_fall_preview()
+	augroup END
+<
+-----------------------------------------------------------------------------
+FILETYPE					*fall-filetype*
+
+Fall provides the following filetypes for the components of the picker window.
+
+	fall-input	The filetype of the input component.
+	fall-list	The filetype of the list component.
+	fall-help	The filetype of the help component.
+
+For example, to enable |list| option for the list component, you can use the
+|FileType| |autocmd| like:
+>vim
+	augroup my_fall_list
+	  autocmd!
+	  autocmd FileType fall-list setlocal list
+	augroup END
+<
+Note that the filetype of the preview component is determined by the previewer
+used in the picker so you need to use |FallPreviewRendered| instead to
+configure the preview window.
 
 =============================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
