@@ -63,9 +63,7 @@ cnoremap <silent> <Plug>(fall-action-select) <Cmd>call fall#action('@select')<CR
 
 if !get(g:, 'fall_disable_default_mapping')
   function! s:define(lhs, rhs) abort
-    if !hasmapto(a:rhs, 'c') && empty(maparg(a:lhs, 'c'))
-      execute 'cnoremap <silent> <nowait> ' . a:lhs . ' ' . a:rhs
-    endif
+    execute 'cnoremap <silent> <nowait> ' .. a:lhs .. ' ' .. a:rhs
   endfunction
 
   function! s:map_picker() abort
@@ -110,6 +108,6 @@ if !get(g:, 'fall_disable_default_mapping')
 
   augroup fall_mapping_plugin
     autocmd!
-    autocmd User FallPickerEnter:* call s:map_picker()
+    autocmd User FallPickerEnterSystem:* call s:map_picker()
   augroup END
 endif

@@ -2,31 +2,33 @@ import type { Denops } from "jsr:@denops/std@^7.3.2";
 import { emit } from "jsr:@denops/std@^7.3.2/autocmd";
 
 /**
- * Save current cmap and emit `User FallPickerEnter:{name}` autocmd.
- *
- * The saved cmap will be restored by `emitPickerLeave`.
+ * Emit `User FallPickerEnterSystem:{name}` autocmd.
  */
-export async function emitPickerEnter(
+export async function emitPickerEnterSystem(
   denops: Denops,
   name: string,
 ): Promise<void> {
   try {
-    await emit(denops, "User", `FallPickerEnter:${name}`, { nomodeline: true });
+    await emit(denops, "User", `FallPickerEnterSystem:${name}`, {
+      nomodeline: true,
+    });
   } catch (err) {
-    console.warn(`[fall] Failed to emit FallPickerEnter:${name}`, err);
+    console.warn(`[fall] Failed to emit FallPickerEnterSystem:${name}`, err);
   }
 }
 
 /**
- * Restore saved cmap and emit `User FallPickerLeave:{name}` autocmd.
+ * Emit `User FallPickerLeaveSystem:{name}` autocmd.
  */
-export async function emitPickerLeave(
+export async function emitPickerLeaveSystem(
   denops: Denops,
   name: string,
 ): Promise<void> {
   try {
-    await emit(denops, "User", `FallPickerLeave:${name}`, { nomodeline: true });
+    await emit(denops, "User", `FallPickerLeaveSystem:${name}`, {
+      nomodeline: true,
+    });
   } catch (err) {
-    console.warn(`[fall] Failed to emit FallPickerLeave:${name}`, err);
+    console.warn(`[fall] Failed to emit FallPickerLeaveSystem:${name}`, err);
   }
 }

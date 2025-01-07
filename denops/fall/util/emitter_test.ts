@@ -1,10 +1,10 @@
 import { assertEquals } from "jsr:@std/assert@^1.0.6";
 import { DenopsStub } from "jsr:@denops/test@^3.0.4/stub";
 
-import { emitPickerEnter, emitPickerLeave } from "./emitter.ts";
+import { emitPickerEnterSystem, emitPickerLeaveSystem } from "./emitter.ts";
 
-Deno.test("emitPickerEnter", async (t) => {
-  await t.step("emit 'User FallPickerEnter:{name}'", async () => {
+Deno.test("emitPickerEnterSystem", async (t) => {
+  await t.step("emit 'User FallPickerEnterSystem:{name}'", async () => {
     const called: [string, Record<PropertyKey, unknown>][] = [];
     const denops = new DenopsStub({
       cmd(name, ctx): Promise<void> {
@@ -12,15 +12,15 @@ Deno.test("emitPickerEnter", async (t) => {
         return Promise.resolve();
       },
     });
-    await emitPickerEnter(denops, "test");
+    await emitPickerEnterSystem(denops, "test");
     assertEquals(called, [
-      ["do <nomodeline> User FallPickerEnter:test", {}],
+      ["do <nomodeline> User FallPickerEnterSystem:test", {}],
     ]);
   });
 });
 
-Deno.test("emitPickerLeave", async (t) => {
-  await t.step("emit 'User FallPickerLeave:{name}'", async () => {
+Deno.test("emitPickerLeaveSystem", async (t) => {
+  await t.step("emit 'User FallPickerLeaveSystem:{name}'", async () => {
     const called: [string, Record<PropertyKey, unknown>][] = [];
     const denops = new DenopsStub({
       cmd(name, ctx): Promise<void> {
@@ -28,9 +28,9 @@ Deno.test("emitPickerLeave", async (t) => {
         return Promise.resolve();
       },
     });
-    await emitPickerLeave(denops, "test");
+    await emitPickerLeaveSystem(denops, "test");
     assertEquals(called, [
-      ["do <nomodeline> User FallPickerLeave:test", {}],
+      ["do <nomodeline> User FallPickerLeaveSystem:test", {}],
     ]);
   });
 });
