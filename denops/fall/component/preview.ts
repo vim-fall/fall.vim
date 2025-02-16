@@ -164,7 +164,7 @@ export class PreviewComponent extends BaseComponent {
       await fn.win_execute(
         denops,
         winid,
-        `silent! setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile nomodifiable nowrap cursorline`,
+        `silent! setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile nomodifiable nowrap cursorline cursorlineopt=number,line`,
       );
       // Move cursor
       await fn.win_execute(
