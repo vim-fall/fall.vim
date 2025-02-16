@@ -133,7 +133,7 @@ export class ListComponent extends BaseComponent {
     await fn.win_execute(
       denops,
       winid,
-      "setlocal cursorline signcolumn=yes nowrap nolist nofoldenable nonumber norelativenumber filetype=fall-list",
+      "setlocal cursorline cursorlineopt=line signcolumn=yes nowrap nolist nofoldenable nonumber norelativenumber filetype=fall-list",
     );
 
     signal?.throwIfAborted();
