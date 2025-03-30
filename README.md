@@ -8,10 +8,10 @@
 
 <div align="center">
 
-![CleanShot 2024-11-17 at 15 17 46](https://github.com/user-attachments/assets/f19fe70e-1b6f-4493-90da-45fcfdd5cd57)<br>
+![vim-fall's screencast](https://github.com/user-attachments/assets/c4f3d336-073c-44e2-ba36-2f7e282b78b7)<br>
 <sup>Fall with
 [vim-glyph-pallet](https://github.com/lambdalisue/vim-glyph-palette) (Colors on
-glyphs) on [NordFox](https://github.com/EdenEast/nightfox.nvim) (Vim's
+glyphs) on [DawnFox](https://github.com/EdenEast/nightfox.nvim) (Vim's
 colorscheme)</sup>
 
 </div>
