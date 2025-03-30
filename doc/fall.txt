@@ -1,23 +1,739 @@
-*fall.txt*							Filter All
+*fall.txt*: Filter All - Flexible Fuzzy Finder for Vim/Neovim
 
-Author:  Alisue <lambdalisue@gmail.com>
+Author: Alisue <lambdalisue@gmail.com>
 License: MIT License (See LICENSE)
-
 
 =============================================================================
 CONTENTS					*fall-contents*
 
-INTRODUCTION			|fall-introduction|
-
+INTRODUCTION				|fall-introduction|
+REQUIREMENTS				|fall-requirements|
+USAGE					|fall-usage|
+CONFIGURATION				|fall-configuration|
+CUSTOMIZATION				|fall-customization|
+INTERFACE				|fall-interface|
+MODULE					|fall-module|
 
 =============================================================================
 INTRODUCTION					*fall-introduction*
 
-Fall (*fall.vim*) is a yet another fuzzy finder for Vim/Neovim written
-in Denops.
+Fall (*fall.vim*) is a flexible Fuzzy Finder for Vim/Neovim.
 
-Denops: https://github.com/vim-denops/denops.vim
+Key features include:
 
+	- Quick help via <F1> key.
+	- Support for multiple matchers, sorters, renderers, and previewers.
+	- Submatch capabilities for refined filtering.
+	- Action selector for invoking various actions.
+	- Extensible through TypeScript customization.
+
+=============================================================================
+REQUIREMENTS					*fall-requirements*
+
+Fall relies on denops.vim for its operation.
+
+denops.vim~
+	An ecosystem enabling Vim/Neovim plugin development in Deno.
+	https://github.com/vim-denops/denops.vim
+
+The default "nerdfont" renderer necessitates a Nerd Font-configured terminal
+for proper icon display.
+
+Nerd Font~
+	A collection of over 10,000 icons compatible with popular
+	programming fonts.
+	https://www.nerdfonts.com/
+
+To disable the "nerdfont" renderer, remove it from the "renderers" array
+within the "custom.ts" file. Refer to |fall-customization| for details on
+customization.
+
+=============================================================================
+USAGE						*fall-usage*
+
+The |:Fall| command initiates a floating window for filtering specified
+sources. For instance, to filter files in the current directory using the
+"file" source:
+>
+	:Fall file
+<
+To filter files in a specific directory, provide the directory path as an
+argument:
+>
+	:Fall file /path/to/directory
+<
+To filter lines within the current buffer, use the "line" source:
+>
+	:Fall line
+<
+Sources are defined in "custom.ts" via |:FallCustom|. In default "custom.ts",
+the following sources are defined:
+
+Name		Description~
+"grep"		Filter files by its content using grep.
+"git-grep"	Filter files by its content using git-grep.
+"rg"		Filter files by its content using ripgrep (rg).
+"file"		Filter files in the directory.
+"file:all"	Filter files in the directory without static filters.
+"line"		Filter lines in the buffer.
+"buffer"	Filter buffers.
+"help"		Filter help tags.
+"quickfix"	Filter |quickfix| list.
+"oldfiles"	Filter |:oldfiles|.
+"history"	Filter command history.
+
+Users can define additional sources in "custom.ts" to suit their needs. See
+|fall-customization| for customization details.
+
+Within the picker window, the following default mappings are applied. Note 
+that these may vary based on configuration, and can be confirmed via the <F1>
+help prompt.
+
+Key		Description~
+<C-t>		Move cursor to the first item.
+<C-g>		Move cursor to the last item.
+<C-p>		Move cursor to the previous item.
+<C-n>		Move cursor to the next item.
+<C-u>		Scroll up by 'scroll' lines.
+<C-d>		Scroll down by 'scroll' lines.
+<PageUp>	Scroll list content left.
+<PageDown>	Scroll list content right.
+<S-PageUp>	Scroll left by 'scroll' lines.
+<S-PageDown>	Scroll right by 'scroll' lines.
+<C-,>		Select the current item.
+<C-.>		Select all items.
+<C-j>		Select the current item and move to the next item.
+<C-k>		Move to the previous item and select it.
+<M-Home>	Move cursor to the first line of preview.
+<M-End>		Move cursor to the last line of preview.
+<M-Up>		Move cursor to the previous line of preview.
+<M-Down>	Move cursor to the next line of preview.
+<M-Left>	Scroll preview left.
+<M-Right>	Scroll preview right.
+<S-Left>	Scroll preview left by 'scroll' lines.
+<S-Right>	Scroll preview right by 'scroll' lines.
+<Tab>		Open the action selector.
+<F1>		Open or close help window.
+<F2>		Switch to the next matcher.
+<F3>		Switch to the next sorter.
+<F4>		Switch to the next renderer.
+<F5>		Switch to the next previewer.
+
+Uses can define additional mappings via |FallPickerEnter| autocmd. See
+|fall-configuration| for details.
+
+=============================================================================
+CONFIGURATION					*fall-configuration*
+
+In Fall, configurations that leverage Vim's built-in functionality are
+categorized as "Configuration." This includes settings such as key mappings,
+highlights, and buffer option modifications.
+
+Visit https://github.com/vim-fall/fall.vim/wiki/Configuration if you prefer to
+see documentation in a web browser.
+
+-------------------------------------------------------------------------------
+MAPPING				*fall-configuration-mapping*
+
+Use <Plug> mappings with |cnoremap| in |FallPickerEnter| autocmd to configure
+mappings. See |fall-mapping| for a list of available mappings.
+
+For example:
+>vim
+	function! s:my_fall() abort
+	  " Use <Up> and <Down> to navigate instead of <C-n> and <C-p>
+	  cnoremap <nowait> <Up> <Plug>(fall-list-prev)
+	  cnoremap <nowait> <Down> <Plug>(fall-list-next)
+	  " Disable horizontal scroll
+	  cnoremap <nowait> <Nop> <Plug>(fall-list-left)
+	  cnoremap <nowait> <Nop> <Plug>(fall-list-right)
+	  " Open in split window
+	  cnoremap <nowait> <C-x> <Cmd>call fall#action('open:split') <CR>
+	  cnoremap <nowait> <C-v> <Cmd>call fall#action('open:vsplit') <CR>
+	endfunction
+
+	augroup my_fall
+	  autocmd!
+	  autocmd User FallPickerEnter:* call s:my_fall()
+	augroup END
+<
+To disable default mappings, use |g:fall#disable_default_mappings| like
+>vim
+	let g:fall#disable_default_mappings = v:true
+<
+-------------------------------------------------------------------------------
+HIGHLIGHT			*fall-configuration-highlight*
+
+Use FallXXXXX highlight groups to configure the picker window appearance. See
+|fall-highlight| for a list of available highlight groups.
+
+For example:
+>vim
+	function! s:my_fall_style() abort
+	  highlight FallNormal
+	        \ ctermfg=Blue
+	        \ ctermbg=Black
+	        \ guifg=#0000FF
+	        \ guibg=#000000
+	  highlight FallBorder ctermfg=Green guifg=#00FF00
+	  highlight FallInputHeader cterm=bold ctermfg=Yellow guifg=#FFFF00
+	endfunction
+	augroup MyFallStyle
+	  autocmd!
+	  autocmd ColorScheme * call s:my_fall_style()
+	augroup END
+	call s:my_fall_style()
+<
+-------------------------------------------------------------------------------
+SIGN				*fall-configuration-sign*
+
+Use FallXXXXX sign groups to configure the picker window appearance. See
+|fall-sign| for a list of available sign groups.
+
+For example:
+>vim
+	function! s:my_fall_style() abort
+	  sign define FallListSelected text=*
+	endfunction
+
+	augroup fall_plugin_style
+	  autocmd!
+	  autocmd ColorScheme * call s:my_fall_style()
+	augroup END
+	call s:my_fall_style()
+<
+-------------------------------------------------------------------------------
+AUTOCMD				*fall-configuration-autocmd*
+
+Use FallXXXXX autocmd events to configure the picker window behavior. See
+|fall-autocmd| for a list of available autocmd events.
+
+For example:
+>vim
+	function! s:my_fall_preview() abort
+	  " Disable number/relativenumber on the preview component
+	  setlocal nonumber norelativenumber
+	endfunction
+	
+	augroup my_fall_preview
+	  autocmd!
+	  autocmd User FallPreviewRendered:* call s:my_fall_preview()
+	augroup END
+<
+------------------------------------------------------------------------------
+FILETYPE			*fall-configuration-filetype*
+
+Use fall-xxxxx filetype to configure the picker window appearance and behavior.
+See |fall-filetype| for a list of available filetypes.
+
+For example:
+>vim
+	function! s:my_fall_config() abort
+	  " Enable the 'list' option for Fall's components
+	  setlocal list
+	endfunction
+	
+	augroup my_fall_config
+	  autocmd!
+	  autocmd FileType fall-input call s:my_fall_config()
+	  autocmd FileType fall-list call s:my_fall_config()
+	  autocmd FileType fall-help call s:my_fall_config()
+	augroup END
+<
+==============================================================================
+CUSTOMIZATION				*fall-customization*
+
+In Fall, settings written in TypeScript to enhance Fall's behavior are 
+categorized as "Customization." This specifically refers to modifications made
+to the user customization file, which can be accessed via the |FallCustom|
+command.
+
+Visit https://github.com/vim-fall/fall.vim/wiki/Customization if you prefer to
+see documentation in a web browser.
+
+See |fall-module| for explanations of the modules used in customization.
+
+------------------------------------------------------------------------------
+CUSTOMIZATION FILE		*fall-customization-file*
+
+When you run the |FallCustom| command, the user customization file opens. In
+this file, Pickers are defined, and only the Pickers defined here can be used
+in Fall.
+
+For example, if you create a user customization file without defining any
+Pickers, as shown below, Fall will not have any Pickers available:
+>typescript
+	import type { Entrypoint } from "jsr:@vim-fall/custom";
+	
+	export const main: Entrypoint = () => {
+	  // WARNING: Since no Pickers are defined, Fall provides no functionality
+	};
+<
+------------------------------------------------------------------------------
+DEFINING PICKERS		*fall-customization-defining-pickers*
+
+A Picker can be defined by specifying at least its name, source, matcher, and
+actions. Additionally, if no additional options are required, modules can be
+passed as functions directly:
+>typescript
+	import type { Entrypoint } from "jsr:@vim-fall/custom";
+	import * as builtin from "jsr:@vim-fall/std/builtin";
+	
+	export const main: Entrypoint = ({ definePickerFromSource }) => {
+	  definePickerFromSource(
+	    "file",
+	    // `builtin.source.file` and `builtin.source.file()` are treated as
+	    // equivalent
+	    builtin.source.file,
+	    {
+	      matchers: [builtin.matcher.fzf],
+	      actions: {
+	        open: builtin.action.open,
+	      },
+	      defaultAction: "open",
+	    },
+	  );
+	};
+<
+------------------------------------------------------------------------------
+AVAILABLE ARGUMENTS		*fall-customization-arguments*
+
+To define a Picker, you use the "definePickerFromSource" function as shown
+above. The "main" function receives the following arguments:
+
+Argument Name			Description ~
+"denops"			A Denops instance.
+
+"definePickerFromSource"	A function to define a Picker using a Source
+				and a Matcher.
+
+"definePickerFromCurator"	A function to define a Picker using a Curator.
+
+"refineActionPicker"		A function to refine the Picker used for
+				selecting actions.
+
+"refineSetting"			A function to adjust various settings.
+
+Users can utilize these functions to define Pickers and customize their
+configurations.
+
+See "builtin" modules of https://jsr.io/@vim-fall/std for available official
+builtin extensions and https://jsr.io/@vim-fall/extra for available official
+extra extensions. And see "denops/fall/_assets/default.custom.ts" for the
+latest default customization file.
+
+------------------------------------------------------------------------------
+MODULE COMPOSITION                 *fall-customization-module-composition*
+
+In addition, https://jsr.io/@vim-fall/std provides the following functions to
+refine and compose individual modules:
+
+Name			Description ~
+"bindSourceArgs"	Wraps a source to prepend fixed arguments (static or
+			dynamically resolved) to its input parameters before
+			execution.
+
+"bindCuratorArgs"	Wraps a curator to prepend fixed arguments (static or
+			dynamically resolved) to its input parameters before
+			execution.
+
+"refineSource"		Applies multiple Refiners to Source to refine and
+			process generated items.
+
+"refineCurator"		Applies multiple Refiners to Curator to refine and
+			process generated items.
+
+"composeSources"	Combines multiple Sources to create a new Source that
+			sequentially retrieves items from all Sources.
+
+"composeMatchers"	Combines multiple Matchers to create a new Matcher
+			that filters items through all Matchers.
+
+"composeCurators"	Combines multiple Curators to create a new Curator
+			that retrieves items through all Curators.
+
+"composeSorters"	Combines multiple Sorters to create a new Sorter that
+			sorts items through all Sorters.
+
+"composeRenderers"	Combines multiple Renderers to create a new Renderer
+			that processes items through all Renderers.
+
+"composePreviewers"	Combines multiple Previewers to create a new Previewer
+			that generates content from any of the Previewers.
+
+"composeAction"		Combines multiple Actions to create a new Action that
+			invokes all Actions.
+
+By combining these modules, Fall enables flexible functionality.
+
+For example, the following code demonstrates how to create a Source that
+retrieves files recorded in Vim's |oldfiles| that exist in the current
+directory:
+>typescript
+	import { refineSource } from "jsr:@vim-fall/std"
+	import * as builtin from "jsr:@vim-fall/std/builtin"
+	
+	const source = refineSource(
+	  builtin.source.oldfiles,
+	  builtin.refiner.exists,
+	  builtin.refiner.cwd,
+	);
+<
+
+Similarly, the following example shows how to create an Action that change
+directory and open:
+>typescript
+	import { composeActions } from "jsr:@vim-fall/std"
+	import * as builtin from "jsr:@vim-fall/std/builtin"
+	
+	const action = composeActions(
+	  builtin.action.cd,
+	  builtin.action.open,
+	);
+<
+=============================================================================
+INTERFACE					*fall-interface*
+
+-----------------------------------------------------------------------------
+COMMAND						*fall-command*
+
+						*:Fall*
+:Fall {source} [{cmdarg}]
+	Open picker to filter {source} (defined in "custom.ts" via
+	|:FallCustom|). {cmdarg} is passed to the source.
+
+						*:FallCustom*
+:FallCustom
+	Open "custom.ts" for customization. This TypeScript file exports a
+	"main" function defining pickers. Changes trigger reload via
+	|:FallCustomReload|.
+
+	See |g:fall_custom_path| for the file path.
+
+						*:FallCustomReload*
+:FallCustomReload
+	Reload "custom.ts" to apply changes. Deno's module cache may require
+	restart.
+
+	See |:FallCustomRecache| for cache clearing.
+
+						*:FallCustomRecache*
+:FallCustomRecache
+	Clear Deno's local module cache. Useful for dependency updates in
+	"custom.ts".
+
+-----------------------------------------------------------------------------
+MAPPING						*fall-mapping*
+
+<Plug>(fall-list-first)
+	Moves the cursor to the first item in the list.
+
+<Plug>(fall-list-last)
+	Moves the cursor to the last item in the list.
+
+<Plug>(fall-list-prev)
+	Moves the cursor to the previous item in the list.
+
+<Plug>(fall-list-next)
+	Moves the cursor to the next item in the list.
+
+<Plug>(fall-list-prev:scroll)
+	Moves the cursor up by the value of &scroll in the list.
+
+<Plug>(fall-list-next:scroll)
+	Moves the cursor down by the value of &scroll in the list.
+
+<Plug>(fall-list-left)
+	Scrolls the list content to the left.
+
+<Plug>(fall-list-right)
+	Scrolls the list content to the right.
+
+<Plug>(fall-list-left:scroll)
+	Scrolls the list content to the left by the value of &scroll.
+
+<Plug>(fall-list-right:scroll)
+	Scrolls the list content to the right by the value of &scroll.
+
+<Plug>(fall-select)
+	Selects the currently highlighted item in the list.
+
+<Plug>(fall-select-all)
+	Selects all items in the list.
+
+<Plug>(fall-switch-matcher-first)
+	Switches to the first matcher.
+
+<Plug>(fall-switch-matcher-last)
+	Switches to the last matcher.
+
+<Plug>(fall-switch-matcher-prev)
+	Switches to the previous matcher.
+
+<Plug>(fall-switch-matcher-next)
+	Switches to the next matcher.
+
+<Plug>(fall-switch-sorter-first)
+	Switches to the first sorter.
+
+<Plug>(fall-switch-sorter-last)
+	Switches to the last sorter.
+
+<Plug>(fall-switch-sorter-prev)
+	Switches to the previous sorter.
+
+<Plug>(fall-switch-sorter-next)
+	Switches to the next sorter.
+
+<Plug>(fall-switch-renderer-first)
+	Switches to the first renderer.
+
+<Plug>(fall-switch-renderer-last)
+	Switches to the last renderer.
+
+<Plug>(fall-switch-renderer-prev)
+	Switches to the previous renderer.
+
+<Plug>(fall-switch-renderer-next)
+	Switches to the next renderer.
+
+<Plug>(fall-switch-previewer-first)
+	Switches to the first previewer.
+
+<Plug>(fall-switch-previewer-last)
+	Switches to the last previewer.
+
+<Plug>(fall-switch-previewer-prev)
+	Switches to the previous previewer.
+
+<Plug>(fall-switch-previewer-next)
+	Switches to the next previewer.
+
+<Plug>(fall-preview-first)
+	Moves the preview cursor to the first line.
+
+<Plug>(fall-preview-last)
+	Moves the preview cursor to the last line.
+
+<Plug>(fall-preview-prev)
+	Moves the preview cursor to the previous line.
+
+<Plug>(fall-preview-next)
+	Moves the preview cursor to the next line.
+
+<Plug>(fall-preview-prev:scroll)
+	Moves the preview cursor up by the value of &scroll.
+
+<Plug>(fall-preview-next:scroll)
+	Moves the preview cursor down by the value of &scroll.
+
+<Plug>(fall-preview-left)
+	Scrolls the preview content to the left.
+
+<Plug>(fall-preview-right)
+	Scrolls the preview content to the right.
+
+<Plug>(fall-preview-left:scroll)
+	Scrolls the preview content to the left by the value of &scroll.
+
+<Plug>(fall-preview-right:scroll)
+	Scrolls the preview content to the right by the value of &scroll.
+
+<Plug>(fall-help)
+	Toggles the help component visibility.
+
+<Plug>(fall-help-prev)
+	Moves to the previous page in the help component.
+
+<Plug>(fall-help-next)
+	Moves to the next page in the help component.
+
+<Plug>(fall-action-select)
+	Opens the action selector for the current item.
+
+-----------------------------------------------------------------------------
+HIGHLIGHT					*fall-highlight*
+
+*FallNormal*
+	Default text highlight in the picker window.
+
+*FallBorder*
+	Border text highlight in the picker window.
+
+*FallInputHeader*
+	Input header highlight (default: |FallBorder|).
+
+*FallInputCounter*
+	Input counter highlight (default: |FallBorder|).
+
+*FallInputCursor*
+	Input cursor highlight (default: |Cursor|).
+
+*FallListMatch*
+	Matched text highlight (default: |Match|).
+
+*FallListSelected*
+	Selected items highlight (default: |CurSearch|).
+
+*FallHelpHeader*
+	Help header highlight (default: |Conceal|).
+
+*FallHelpMappingLhs*
+	Mapping LHS highlight (default: |Special|).
+
+*FallHelpMappingRhs*
+	Mapping RHS highlight (default: |Title|).
+
+*FallHelpMappingOperator*
+	Operator highlight (default: |Operator|).
+
+-----------------------------------------------------------------------------
+SIGN						*fall-sign*
+
+*FallListSelected*
+	Indicator sign for the selected item in the list component.
+	Default to "»".
+
+
+-----------------------------------------------------------------------------
+AUTOCMD						*fall-autocmd*
+
+						*FallPickerEnter*
+FallPickerEnter:{name}
+	|User| |autocmd| triggered on entering the {name} picker window.
+
+	Use to define custom key mappings:
+>vim
+	function! s:my_fall() abort
+	  " Use <Up> and <Down> to navigate instead of <C-n> and <C-p>
+	  cnoremap <nowait> <Up> <Plug>(fall-list-prev)
+	  cnoremap <nowait> <Down> <Plug>(fall-list-next)
+	  " Disable horizontal scroll
+	  cnoremap <nowait> <Nop> <Plug>(fall-list-left)
+	  cnoremap <nowait> <Nop> <Plug>(fall-list-right)
+	  " Open in split window
+	  cnoremap <nowait> <C-x> <Cmd>call fall#action('open:split') <CR>
+	  cnoremap <nowait> <C-v> <Cmd>call fall#action('open:vsplit') <CR>
+	endfunction
+
+	augroup my_fall
+	  autocmd!
+	  autocmd User FallPickerEnter:* call s:my_fall()
+	augroup END
+<
+	Mappings after this autocmd are discarded before |FallPickerLeave|.
+
+	See |FallPickerLeave| for the leave event.
+
+						*FallPickerLeave*
+FallPickerLeave:{name}
+	|User| |autocmd| triggered on leaving the {name} picker window.
+
+	See |FallPickerEnter| for the entry event.
+
+						*FallCustomLoaded*
+FallCustomLoaded
+	|User| |autocmd| triggered when "custom.ts" is loaded.
+	See |:FallCustomReload| for reloading.
+
+						*FallCustomRecached*
+FallCustomRecached
+	|User| |autocmd| triggered when Deno's cache is cleared.
+	See |:FallCustomRecache| for cache clearing.
+
+						*FallPreviewRendered*
+FallPreviewRendered:{filename}
+	|User| |autocmd| triggered when the preview is rendered.
+	{filename} is the rendered file name.
+
+	Use to configure the preview:
+>vim
+	function! s:my_fall_preview() abort
+	  " Enable line number (not available on Vim)
+	  setlocal number
+	endfunction
+
+	augroup my_fall_preview
+	  autocmd!
+	  autocmd User FallPreviewRendered:* call s:my_fall_preview()
+	augroup END
+<
+-----------------------------------------------------------------------------
+FILETYPE					*fall-filetype*
+
+Fall provides the following filetypes:
+
+	fall-input	Input component filetype.
+	fall-list	List component filetype.
+	fall-help	Help component filetype.
+
+Example usage:
+>vim
+	augroup my_fall_list
+	  autocmd!
+	  autocmd FileType fall-list setlocal list
+	augroup END
+<
+Preview filetype is determined by the previewer; use |FallPreviewRendered|.
+
+=============================================================================
+MODULE						*fall-module*
+
+Fall decomposes the functionality of a Fuzzy Finder into the following
+modules:
+
+						*fall-module-coordinator*
+Coordinator~
+	A module that determines the style and layout of the picker. Opens
+	the picker window.
+
+						*fall-module-theme*
+Theme~
+	A theme structure used to define the style of the picker. It is passed
+	to the |fall-module-coordinator|.
+
+						*fall-module-source*
+Source~
+	Retrieves data from arbitrary sources and generates an
+	"AsyncIterableIterator" of items. This module is applied to the
+	internal collect processor.
+
+						*fall-module-matcher*
+Matcher~
+	Filters the items received from the |fall-module-source| based on user
+	input and generates an "AsyncIterableIterator" of filtered items. It
+	is applied to the internal match processor.
+
+						*fall-module-curator*
+Curator~
+	Combines |fall-module-source| and |fall-module-matcher|, performing
+	data retrieval and filtering based on user input. Mainly used for
+	live-grep like feature. It is transformed into |fall-module-source|
+	with |fall-module-matcher| internally.
+
+						*fall-module-sorter*
+Sorter~
+	Sorts items in-place received from the |fall-module-matcher| or
+	|fall-module-curator|. It is applied to the internal sort processor.
+
+						*fall-module-renderer*
+Renderer~
+	Processes sorted items in-place from the |fall-module-sorter| for user
+	display. It is applied to the internal render processor.
+
+						*fall-module-previewer*
+Previewer~
+	Generates content for previewing the currently selected item. It is
+	applied to the internal preview processor.
+
+						*fall-module-action*
+Action~
+	Executes actions on the selected target item.
+
+						*fall-module-refiner*
+Refiner~
+	Applies to |fall-module-source| or |fall-module-curator| to refine and
+	process generated items.
 
 =============================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
