@@ -9,7 +9,7 @@ import { ItemBelt } from "../lib/item_belt.ts";
 import { dispatch } from "../event.ts";
 
 const INTERVAL = 0;
-const THRESHOLD = 100000;
+const THRESHOLD = 10000;
 const CHUNK_SIZE = 1000;
 
 export type MatchProcessorOptions = {

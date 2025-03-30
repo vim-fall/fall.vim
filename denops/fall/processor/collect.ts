@@ -7,7 +7,7 @@ import type { CollectParams, Source } from "jsr:@vim-fall/core@^0.3.0/source";
 import { Chunker } from "../lib/chunker.ts";
 import { dispatch } from "../event.ts";
 
-const THRESHOLD = 100000;
+const THRESHOLD = 10000;
 const CHUNK_SIZE = 1000;
 
 export type CollectProcessorOptions = {
