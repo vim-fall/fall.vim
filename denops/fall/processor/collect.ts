@@ -9,10 +9,12 @@ import { dispatch } from "../event.ts";
 
 const THRESHOLD = 10000;
 const CHUNK_SIZE = 1000;
+const CHUNK_INTERVAL = 100;
 
 export type CollectProcessorOptions = {
   threshold?: number;
   chunkSize?: number;
+  chunkInterval?: number;
 };
 
 export class CollectProcessor<T extends Detail> implements Disposable {
@@ -21,6 +23,7 @@ export class CollectProcessor<T extends Detail> implements Disposable {
   readonly #source: Source<T>;
   readonly #threshold: number;
   readonly #chunkSize: number;
+  readonly #chunkInterval: number;
   #processing?: Promise<void>;
   #paused?: PromiseWithResolvers<void>;
 
@@ -31,6 +34,7 @@ export class CollectProcessor<T extends Detail> implements Disposable {
     this.#source = source;
     this.#threshold = options.threshold ?? THRESHOLD;
     this.#chunkSize = options.chunkSize ?? CHUNK_SIZE;
+    this.#chunkInterval = options.chunkInterval ?? CHUNK_INTERVAL;
   }
 
   get items() {
@@ -72,10 +76,15 @@ export class CollectProcessor<T extends Detail> implements Disposable {
         dispatch({ type: "collect-processor-updated" });
       };
       const chunker = new Chunker<IdItem<T>>(this.#chunkSize);
+      let lastChunkTime = performance.now();
       for await (const item of iter) {
         if (this.#paused) await this.#paused.promise;
         signal.throwIfAborted();
-        if (chunker.put(item)) {
+        if (
+          chunker.put(item) ||
+          performance.now() - lastChunkTime > this.#chunkInterval
+        ) {
+          lastChunkTime = performance.now();
           update(chunker.consume());
         }
       }
