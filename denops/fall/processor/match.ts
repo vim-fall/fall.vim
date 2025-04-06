@@ -11,11 +11,13 @@ import { dispatch } from "../event.ts";
 const INTERVAL = 0;
 const THRESHOLD = 10000;
 const CHUNK_SIZE = 1000;
+const CHUNK_INTERVAL = 100;
 
 export type MatchProcessorOptions = {
   interval?: number;
   threshold?: number;
   chunkSize?: number;
+  chunkInterval?: number;
   incremental?: boolean;
 };
 
@@ -24,6 +26,7 @@ export class MatchProcessor<T extends Detail> implements Disposable {
   readonly #interval: number;
   readonly #threshold: number;
   readonly #chunkSize: number;
+  readonly #chunkInterval: number;
   readonly #incremental: boolean;
   #controller: AbortController = new AbortController();
   #processing?: Promise<void>;
@@ -38,6 +41,7 @@ export class MatchProcessor<T extends Detail> implements Disposable {
     this.#interval = options.interval ?? INTERVAL;
     this.#threshold = options.threshold ?? THRESHOLD;
     this.#chunkSize = options.chunkSize ?? CHUNK_SIZE;
+    this.#chunkInterval = options.chunkInterval ?? CHUNK_INTERVAL;
     this.#incremental = options.incremental ?? false;
   }
 
@@ -109,9 +113,14 @@ export class MatchProcessor<T extends Detail> implements Disposable {
         }
       };
       const chunker = new Chunker<IdItem<T>>(this.#chunkSize);
+      let lastChunkTime = performance.now();
       for await (const item of iter) {
         signal.throwIfAborted();
-        if (chunker.put(item)) {
+        if (
+          chunker.put(item) ||
+          performance.now() - lastChunkTime > this.#chunkInterval
+        ) {
+          lastChunkTime = performance.now();
           update(chunker.consume());
           await delay(this.#interval, { signal });
         }
