@@ -28,6 +28,7 @@ if has('nvim-0.5.0')
   augroup END
 elseif has('nvim') || has('gui_running')
   function! s:hide_cursor() abort
+    let s:guicursor_saved = &guicursor
     set guicursor+=a:ver1
   endfunction
 
