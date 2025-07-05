@@ -401,6 +401,37 @@ COMMAND						*fall-command*
 :Fall {source} [{cmdarg}]
 	Open picker to filter {source} (defined in "custom.ts" via
 	|:FallCustom|). {cmdarg} is passed to the source.
+>
+	" Open picker to filter files in the current directory
+	:Fall file
+
+	" Open picker to filter files in the specified directory
+	:Fall file /path/to/directory
+<
+
+						*:FallResume*
+:FallResume [{filter}]
+	Resume the previous picker. If {filter} is not specified, it resumes
+	the latest picker. The {filter} can be a source name and/or a number
+	indicating the order of the picker. If a source name is specified, it
+	resumes the latest picker of that source. If a number is specified,
+	it resumes the nth latest picker. If both a source name and a number
+	are specified, it resumes the nth latest picker of that source. The
+	number is preceded by a "#" character. If the number is not specified,
+	it defaults to 1 (the latest picker).
+>
+	" Resume the latest picker
+	:FallResume
+
+	" Resume the latest picker of the "file" source
+	:FallResume file
+
+	" Resume the 2nd latest picker
+	:FallResume #2
+
+	" Resume the 2nd latest picker of the "file" source
+	:FallResume file#2
+<
 
 						*:FallCustom*
 :FallCustom
