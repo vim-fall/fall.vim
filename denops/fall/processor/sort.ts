@@ -15,6 +15,7 @@ export class SortProcessor<T extends Detail> implements Disposable {
   #processing?: Promise<void>;
   #reserved?: () => void;
   #items: IdItem<T>[] = [];
+
   constructor(
     sorters: readonly Sorter<T>[],
     options: SortProcessorOptions = {},
@@ -43,7 +44,7 @@ export class SortProcessor<T extends Detail> implements Disposable {
     this.sorters.index = index;
   }
 
-  get items() {
+  get items(): readonly IdItem<T>[] {
     return this.#items;
   }
 
