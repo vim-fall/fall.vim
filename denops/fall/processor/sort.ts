@@ -7,32 +7,32 @@ import { dispatch } from "../event.ts";
 
 export class SortProcessor<T extends Detail> implements Disposable {
   readonly #controller: AbortController = new AbortController();
-  readonly #sorters: ItemBelt<Sorter<T>>;
+  readonly sorters: ItemBelt<Sorter<T>>;
   #processing?: Promise<void>;
   #reserved?: () => void;
   #items: IdItem<T>[] = [];
 
   constructor(sorters: readonly Sorter<T>[]) {
-    this.#sorters = new ItemBelt(sorters);
+    this.sorters = new ItemBelt(sorters);
   }
 
   get #sorter(): Sorter<T> | undefined {
-    return this.#sorters.current;
+    return this.sorters.current;
   }
 
   get sorterCount(): number {
-    return this.#sorters.count;
+    return this.sorters.count;
   }
 
   get sorterIndex(): number {
-    return this.#sorters.index;
+    return this.sorters.index;
   }
 
   set sorterIndex(index: number | "$") {
     if (index === "$") {
-      index = this.#sorters.count;
+      index = this.sorters.count;
     }
-    this.#sorters.index = index;
+    this.sorters.index = index;
   }
 
   get items() {

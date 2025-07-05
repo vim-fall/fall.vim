@@ -20,7 +20,7 @@ export type RenderProcessorOptions = {
 
 export class RenderProcessor<T extends Detail> implements Disposable {
   readonly #controller: AbortController = new AbortController();
-  readonly #renderers: ItemBelt<Renderer<T>>;
+  readonly renderers: ItemBelt<Renderer<T>>;
   #height: number;
   #scrollOffset: number;
   #processing?: Promise<void>;
@@ -34,28 +34,28 @@ export class RenderProcessor<T extends Detail> implements Disposable {
     renderers: readonly Renderer<T>[],
     options: RenderProcessorOptions = {},
   ) {
-    this.#renderers = new ItemBelt(renderers);
+    this.renderers = new ItemBelt(renderers);
     this.#height = options.height ?? HEIGHT;
     this.#scrollOffset = options.scrollOffset ?? SCROLL_OFFSET;
   }
 
   get #renderer(): Renderer<T> | undefined {
-    return this.#renderers.current;
+    return this.renderers.current;
   }
 
   get rendererCount(): number {
-    return this.#renderers.count;
+    return this.renderers.count;
   }
 
   get rendererIndex(): number {
-    return this.#renderers.index;
+    return this.renderers.index;
   }
 
   set rendererIndex(index: number | "$") {
     if (index === "$") {
-      index = this.#renderers.count;
+      index = this.renderers.count;
     }
-    this.#renderers.index = index;
+    this.renderers.index = index;
   }
 
   get items() {

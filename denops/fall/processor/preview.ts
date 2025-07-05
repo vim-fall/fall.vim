@@ -10,32 +10,32 @@ import { dispatch } from "../event.ts";
 
 export class PreviewProcessor<T extends Detail> implements Disposable {
   readonly #controller: AbortController = new AbortController();
-  readonly #previewers: ItemBelt<Previewer<T>>;
+  readonly previewers: ItemBelt<Previewer<T>>;
   #processing?: Promise<void>;
   #reserved?: () => void;
   #item: PreviewItem | undefined = undefined;
 
   constructor(previewers: readonly Previewer<T>[]) {
-    this.#previewers = new ItemBelt(previewers);
+    this.previewers = new ItemBelt(previewers);
   }
 
   get #previewer(): Previewer<T> | undefined {
-    return this.#previewers.current;
+    return this.previewers.current;
   }
 
   get previewerCount(): number {
-    return this.#previewers.count;
+    return this.previewers.count;
   }
 
   get previewerIndex(): number {
-    return this.#previewers.index;
+    return this.previewers.index;
   }
 
   set previewerIndex(index: number | "$") {
     if (index === "$") {
-      index = this.#previewers.count;
+      index = this.previewers.count;
     }
-    this.#previewers.index = index;
+    this.previewers.index = index;
   }
 
   get item(): PreviewItem | undefined {

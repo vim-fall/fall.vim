@@ -22,7 +22,7 @@ export type MatchProcessorOptions = {
 };
 
 export class MatchProcessor<T extends Detail> implements Disposable {
-  readonly #matchers: ItemBelt<Matcher<T>>;
+  readonly matchers: ItemBelt<Matcher<T>>;
   readonly #interval: number;
   readonly #threshold: number;
   readonly #chunkSize: number;
@@ -37,7 +37,7 @@ export class MatchProcessor<T extends Detail> implements Disposable {
     matchers: readonly [Matcher<T>, ...Matcher<T>[]],
     options: MatchProcessorOptions = {},
   ) {
-    this.#matchers = new ItemBelt(matchers);
+    this.matchers = new ItemBelt(matchers);
     this.#interval = options.interval ?? INTERVAL;
     this.#threshold = options.threshold ?? THRESHOLD;
     this.#chunkSize = options.chunkSize ?? CHUNK_SIZE;
@@ -46,7 +46,7 @@ export class MatchProcessor<T extends Detail> implements Disposable {
   }
 
   get #matcher(): Matcher<T> {
-    return this.#matchers.current!;
+    return this.matchers.current!;
   }
 
   get items(): IdItem<T>[] {
@@ -54,18 +54,18 @@ export class MatchProcessor<T extends Detail> implements Disposable {
   }
 
   get matcherCount(): number {
-    return this.#matchers.count;
+    return this.matchers.count;
   }
 
   get matcherIndex(): number {
-    return this.#matchers.index;
+    return this.matchers.index;
   }
 
   set matcherIndex(index: number | "$") {
     if (index === "$") {
-      index = this.#matchers.count;
+      index = this.matchers.count;
     }
-    this.#matchers.index = index;
+    this.matchers.index = index;
   }
 
   #validateAvailability(): void {

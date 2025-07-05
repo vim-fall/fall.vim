@@ -20,7 +20,6 @@ export type CollectProcessorOptions = {
 export class CollectProcessor<T extends Detail> implements Disposable {
   readonly #controller: AbortController = new AbortController();
   readonly #items: IdItem<T>[] = [];
-  readonly #source: Source<T>;
   readonly #threshold: number;
   readonly #chunkSize: number;
   readonly #chunkInterval: number;
@@ -28,10 +27,9 @@ export class CollectProcessor<T extends Detail> implements Disposable {
   #paused?: PromiseWithResolvers<void>;
 
   constructor(
-    source: Source<T>,
+    readonly source: Source<T>,
     options: CollectProcessorOptions = {},
   ) {
-    this.#source = source;
     this.#threshold = options.threshold ?? THRESHOLD;
     this.#chunkSize = options.chunkSize ?? CHUNK_SIZE;
     this.#chunkInterval = options.chunkInterval ?? CHUNK_INTERVAL;
@@ -65,7 +63,7 @@ export class CollectProcessor<T extends Detail> implements Disposable {
       dispatch({ type: "collect-processor-started" });
       const signal = this.#controller.signal;
       const iter = take(
-        this.#source.collect(denops, params, { signal }),
+        this.source.collect(denops, params, { signal }),
         this.#threshold,
       );
       const update = (chunk: Iterable<IdItem<T>>) => {
