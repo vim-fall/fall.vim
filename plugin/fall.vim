@@ -8,6 +8,7 @@ command! -nargs=+ -complete=customlist,fall#command#Fall#complete
       \ Fall call fall#command#Fall#call([<f-args>])
 command! -nargs=? -complete=customlist,fall#command#FallResume#complete
       \ FallResume call fall#command#FallResume#call(<q-args>)
+command! -nargs=0 FallSession call fall#command#FallSession#call()
 
 command! -nargs=0 FallCustom call fall#command#FallCustom#call()
 command! -nargs=0 FallCustomReload call fall#command#FallCustomReload#call()

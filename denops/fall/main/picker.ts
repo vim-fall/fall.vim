@@ -21,8 +21,18 @@ import {
   loadPickerSession,
   savePickerSession,
 } from "../session.ts";
+import type { Detail as SessionDetail } from "../extension/source/session.ts";
+import { session as sessionSource } from "../extension/source/session.ts";
+import { session as sessionRenderer } from "../extension/renderer/session.ts";
+import { session as sessionPreviewer } from "../extension/previewer/session.ts";
+import { defaultSessionActions } from "../extension/action/session.ts";
 
 let zindex = 50;
+
+const SESSION_EXCLUDE_SOURCES = [
+  "@action",
+  "@session",
+];
 
 export const main: Entrypoint = (denops) => {
   denops.dispatcher = {
@@ -74,6 +84,30 @@ export const main: Entrypoint = (denops) => {
         });
       },
     ),
+    "picker:session:command": withHandleError(denops, async () => {
+      await loadUserCustom(denops);
+      const { substring } = await import(
+        "jsr:@vim-fall/std@^0.10.0/builtin/matcher/substring"
+      );
+      const setting = getSetting();
+      const sessionPickerParams = {
+        name: "@session",
+        source: sessionSource(),
+        matchers: [substring()] as const,
+        sorters: [],
+        renderers: [sessionRenderer()],
+        previewers: [sessionPreviewer()],
+        actions: defaultSessionActions,
+        defaultAction: "resume",
+        ...setting,
+      } as PickerParams<SessionDetail, string>;
+      await startPicker(
+        denops,
+        [],
+        sessionPickerParams,
+        { signal: denops.interrupted },
+      );
+    }),
     "picker:resume:command:complete": withHandleError(
       denops,
       async (arglead, cmdline, cursorpos) => {
@@ -179,8 +213,12 @@ async function startPicker<T extends Detail>(
     zindex -= Picker.ZINDEX_ALLOCATION;
   });
   stack.defer(async () => {
+    const name = pickerParams.name;
+    if (SESSION_EXCLUDE_SOURCES.includes(name)) {
+      return;
+    }
     await savePickerSession({
-      name: pickerParams.name,
+      name,
       args,
       context: itemPicker.context,
     });

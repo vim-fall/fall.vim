@@ -203,10 +203,8 @@ Deno.test("session management", async (t) => {
       assertEquals(loadedSession.context.previewerIndex, 4);
       assertEquals(loadedSession.context.collectedItems, testItems);
       assertEquals(loadedSession.context.filteredItems, testItems);
-      // Check that selection was preserved (Sets are converted to empty objects in JSON)
-      // The selection will be an empty object after deserialization since Set is not JSON serializable
-      assertEquals(typeof loadedSession.context.selection, "object");
-      assertEquals(loadedSession.context.selection, {} as unknown);
+      // Check that selection was preserved as a Set
+      assertEquals(loadedSession.context.selection, new Set(["test-1"]));
     },
   );
 
@@ -251,9 +249,8 @@ Deno.test("session management", async (t) => {
 
     assertExists(loaded);
     assertEquals(loaded.context.query, "");
-    // Selection will be deserialized as an empty object, not a Set
-    assertEquals(typeof loaded.context.selection, "object");
-    assertEquals(loaded.context.selection, {} as unknown);
+    // Selection will be deserialized as an empty Set
+    assertEquals(loaded.context.selection, new Set());
     assertEquals(loaded.context.collectedItems.length, 0);
     assertEquals(loaded.context.filteredItems.length, 0);
     assertEquals(loaded.context.cursor, 0);

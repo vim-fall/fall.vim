@@ -433,6 +433,28 @@ COMMAND						*fall-command*
 	:FallResume file#2
 <
 
+						*:FallSession*
+:FallSession
+	Open a picker to browse and resume previous picker sessions. Fall
+	automatically stores up to 100 picker sessions in memory, allowing
+	you to return to previous searches with their complete state including
+	query, filtered items, and selections.
+
+	Sessions are listed in reverse chronological order (newest first) and
+	display the session number, source name, and any arguments used.
+	Selecting a session resumes it with its exact state.
+
+	The following sources are excluded from session storage:
+	- "@action" (action selection picker)
+	- "@session" (the session picker itself)
+
+	Sessions are stored in compressed format to minimize memory usage.
+>
+	" Open the session picker
+	:FallSession
+<
+	See |:FallResume| for directly resuming sessions by number or source.
+
 						*:FallCustom*
 :FallCustom
 	Open "custom.ts" for customization. This TypeScript file exports a

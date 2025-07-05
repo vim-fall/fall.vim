@@ -51,10 +51,15 @@ async function compressPickerSession<T extends Detail>(
   session: PickerSession<T>,
 ): Promise<PickerSessionCompressed<T>> {
   const encoder = new TextEncoder();
+  // Convert Set to Array for JSON serialization
+  const contextForSerialization = {
+    ...session.context,
+    selection: Array.from(session.context.selection),
+  };
   return {
     ...session,
     context: await brotli.compress(
-      encoder.encode(JSON.stringify(session.context)),
+      encoder.encode(JSON.stringify(contextForSerialization)),
     ),
   };
 }
@@ -65,15 +70,20 @@ async function compressPickerSession<T extends Detail>(
  * @param compressed - The compressed session to decompress
  * @returns A promise that resolves to the decompressed session
  */
-async function decompressPickerSession<T extends Detail>(
+export async function decompressPickerSession<T extends Detail>(
   compressed: PickerSessionCompressed<T>,
 ): Promise<PickerSession<T>> {
   const decoder = new TextDecoder();
+  const decompressedContext = JSON.parse(
+    decoder.decode(await brotli.uncompress(compressed.context)),
+  );
+  // Convert selection array back to Set
   return {
     ...compressed,
-    context: JSON.parse(
-      decoder.decode(await brotli.uncompress(compressed.context)),
-    ),
+    context: {
+      ...decompressedContext,
+      selection: new Set(decompressedContext.selection),
+    },
   };
 }
 
