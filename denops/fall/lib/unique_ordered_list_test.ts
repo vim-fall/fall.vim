@@ -67,7 +67,7 @@ Deno.test("UniqueOrderedList: initializes with items", () => {
     { id: 1, name: "Alice" },
     { id: 2, name: "Bob" },
   ]);
-  
+
   // Pushing duplicate IDs is properly prevented
   list.push({ id: 1, name: "Alice (another dup)" });
   assertEquals(list.size, 2); // Still 2, duplicate was ignored
@@ -75,11 +75,11 @@ Deno.test("UniqueOrderedList: initializes with items", () => {
 
 Deno.test("UniqueOrderedList: works without identifier function", () => {
   const list = new UniqueOrderedList<number>([1, 2, 3, 2, 1]); // Has duplicates
-  
+
   // Initial duplicates are filtered
   assertEquals(list.size, 3);
   assertEquals(list.items, [1, 2, 3]);
-  
+
   list.push(4, 2, 5); // 2 is duplicate and will be ignored
   assertEquals(list.size, 5);
   assertEquals(list.items, [1, 2, 3, 4, 5]);
