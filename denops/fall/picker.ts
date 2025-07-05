@@ -57,6 +57,7 @@ export type PickerParams<T extends Detail> = {
   renderers?: readonly Renderer<T>[];
   previewers?: readonly Previewer<T>[];
   zindex?: number;
+  context?: PickerContext<T>;
 };
 
 export type PickerResult<T extends Detail> = {
@@ -69,6 +70,19 @@ export type PickerResult<T extends Detail> = {
 
 export type PickerOptions = {
   schedulerInterval?: number;
+};
+
+export type PickerContext<T extends Detail> = {
+  readonly query: string;
+  readonly selection: Set<unknown>;
+  readonly collectedItems: readonly IdItem<T>[];
+  readonly filteredItems: readonly IdItem<T>[];
+  readonly cursor: number;
+  readonly offset: number;
+  readonly matcherIndex: number;
+  readonly sorterIndex: number;
+  readonly rendererIndex: number;
+  readonly previewerIndex?: number;
 };
 
 export class Picker<T extends Detail> implements AsyncDisposable {
@@ -92,15 +106,17 @@ export class Picker<T extends Detail> implements AsyncDisposable {
   readonly #sorterIcon: string;
   readonly #rendererIcon: string;
   readonly #previewerIcon: string;
-  #selection: Set<unknown> = new Set();
+  #selection: Set<unknown>;
 
   constructor(params: PickerParams<T>, options: PickerOptions = {}) {
     this.#schedulerInterval = options.schedulerInterval ?? SCHEDULER_INTERVAL;
-    this.#name = params.name;
-    this.#coordinator = params.coordinator;
+
+    const { name, theme, coordinator, zindex = 50, context } = params;
+    this.#name = name;
+    this.#coordinator = coordinator;
+    this.#selection = context?.selection ?? new Set();
 
     // Components
-    const { theme, zindex = 50 } = params;
     this.#matcherIcon = theme.matcherIcon ?? MATCHER_ICON;
     this.#sorterIcon = theme.sorterIcon ?? SORTER_ICON;
     this.#rendererIcon = theme.rendererIcon ?? RENDERER_ICON;
@@ -109,6 +125,7 @@ export class Picker<T extends Detail> implements AsyncDisposable {
     const style = this.#coordinator.style(theme);
     this.#inputComponent = this.#stack.use(
       new InputComponent({
+        cmdline: context?.query ?? "",
         spinner: theme.spinner,
         headSymbol: theme.headSymbol,
         failSymbol: theme.failSymbol,
@@ -141,25 +158,52 @@ export class Picker<T extends Detail> implements AsyncDisposable {
 
     // Processor
     this.#collectProcessor = this.#stack.use(
-      new CollectProcessor(params.source),
+      new CollectProcessor(params.source, {
+        initialItems: context?.collectedItems,
+      }),
     );
     this.#matchProcessor = this.#stack.use(
       new MatchProcessor(params.matchers, {
+        initialItems: context?.filteredItems,
+        initialQuery: context?.query,
+        initialIndex: context?.matcherIndex,
         // Use incremental mode for Curator matcher
         incremental: isIncrementalMatcher(params.matchers[0]),
       }),
     );
     this.#sortProcessor = this.#stack.use(
-      new SortProcessor(params.sorters ?? []),
+      new SortProcessor(params.sorters ?? [], {
+        // initialItems: this.#matchProcessor.items,
+        initialIndex: context?.sorterIndex,
+      }),
     );
     this.#renderProcessor = this.#stack.use(
-      new RenderProcessor(
-        params.renderers ?? [],
-      ),
+      new RenderProcessor(params.renderers ?? [], {
+        // initialItems: session?.renderedItems,
+        initialIndex: context?.rendererIndex,
+        initialCursor: context?.cursor,
+        initialOffset: context?.offset,
+      }),
     );
     this.#previewProcessor = this.#stack.use(
-      new PreviewProcessor(params.previewers ?? []),
+      new PreviewProcessor(params.previewers ?? [], {
+        initialIndex: context?.previewerIndex,
+      }),
     );
+  }
+
+  get context(): PickerContext<T> {
+    return {
+      query: this.#inputComponent.cmdline,
+      selection: this.#selection,
+      collectedItems: this.#collectProcessor.items,
+      filteredItems: this.#matchProcessor.items,
+      cursor: this.#renderProcessor.cursor,
+      offset: this.#renderProcessor.offset,
+      matcherIndex: this.#matchProcessor.matcherIndex,
+      sorterIndex: this.#sortProcessor.sorterIndex,
+      rendererIndex: this.#renderProcessor.rendererIndex,
+    };
   }
 
   #getHelpDimension(screen: Size): Dimension {
@@ -290,7 +334,7 @@ export class Picker<T extends Detail> implements AsyncDisposable {
 
   async start(
     denops: Denops,
-    { args }: { args: string[] },
+    { args }: { args: readonly string[] },
     { signal }: { signal?: AbortSignal } = {},
   ): Promise<PickerResult<T> | undefined> {
     await using stack = new AsyncDisposableStack();
