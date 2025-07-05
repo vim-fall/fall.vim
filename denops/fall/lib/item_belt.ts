@@ -1,20 +1,34 @@
 /**
+ * Options for configuring an ItemBelt instance.
+ */
+export type ItemBeltOptions = {
+  /**
+   * The initial index to set for the ItemBelt.
+   * If not provided, defaults to 0.
+   */
+  index?: number;
+};
+
+/**
  * A class representing an item belt, which provides functionality for managing
  * and selecting items in a list with wrap-around and bounded selection.
  *
  * @template T The type of items contained in the belt.
  */
 export class ItemBelt<T> {
-  #index = 0;
+  #index: number = 0;
   #items: readonly T[];
 
   /**
    * Creates an instance of ItemBelt with the specified items.
    *
    * @param items An array of items of type T to initialize the belt.
+   * @param options Optional configuration for the ItemBelt.
+   * @param options.index The initial index to set (default is 0).
    */
-  constructor(items: readonly T[]) {
+  constructor(items: readonly T[], options?: ItemBeltOptions) {
     this.#items = items;
+    this.index = options?.index ?? 0;
   }
 
   /**
@@ -73,7 +87,9 @@ export class ItemBelt<T> {
    *              to the nearest valid value.
    */
   set index(index: number) {
-    if (index >= this.#items.length) {
+    if (this.#items.length === 0) {
+      index = 0;
+    } else if (index >= this.#items.length) {
       index = this.#items.length - 1;
     } else if (index < 0) {
       index = 0;
@@ -85,8 +101,8 @@ export class ItemBelt<T> {
    * Selects a new item based on the current index, with an optional offset.
    * The selection can optionally cycle through the items list.
    *
+   * @param offset The number of positions to move the index (default is 1).
    * @param options Optional configuration for the selection.
-   * @param options.offset The number of positions to move the index (default is 1).
    * @param options.cycle Whether to cycle through the list (default is `false`).
    */
   select(offset = 1, { cycle = false } = {}): void {

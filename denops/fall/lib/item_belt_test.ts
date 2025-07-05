@@ -17,7 +17,7 @@ Deno.test("ItemBelt", async (t) => {
     assertEquals(belt.count, 0);
   });
 
-  await t.step("current returns the first itme in default", () => {
+  await t.step("current returns the first item in default", () => {
     const belt = new ItemBelt([0, 1, 2]);
     assertEquals(belt.current, 0);
   });
@@ -30,6 +30,24 @@ Deno.test("ItemBelt", async (t) => {
   await t.step("count returns the number of items", () => {
     const belt = new ItemBelt([0, 1, 2]);
     assertEquals(belt.count, 3);
+  });
+
+  await t.step("constructor accepts initial index option", () => {
+    const belt = new ItemBelt([0, 1, 2], { index: 1 });
+    assertEquals(belt.index, 1);
+    assertEquals(belt.current, 1);
+  });
+
+  await t.step("constructor clamps initial index when too large", () => {
+    const belt = new ItemBelt([0, 1, 2], { index: 5 });
+    assertEquals(belt.index, 2);
+    assertEquals(belt.current, 2);
+  });
+
+  await t.step("constructor clamps initial index when negative", () => {
+    const belt = new ItemBelt([0, 1, 2], { index: -1 });
+    assertEquals(belt.index, 0);
+    assertEquals(belt.current, 0);
   });
 
   await t.step("changing index changes current", () => {
