@@ -5,13 +5,15 @@ import type { Detail, IdItem } from "jsr:@vim-fall/core@^0.3.0/item";
 import type { CollectParams, Source } from "jsr:@vim-fall/core@^0.3.0/source";
 
 import { Chunker } from "../lib/chunker.ts";
+import { UniqueOrderedList } from "../lib/unique_ordered_list.ts";
 import { dispatch } from "../event.ts";
 
 const THRESHOLD = 100000;
 const CHUNK_SIZE = 1000;
 const CHUNK_INTERVAL = 100;
 
-export type CollectProcessorOptions = {
+export type CollectProcessorOptions<T extends Detail> = {
+  initialItems?: readonly IdItem<T>[];
   threshold?: number;
   chunkSize?: number;
   chunkInterval?: number;
@@ -19,8 +21,7 @@ export type CollectProcessorOptions = {
 
 export class CollectProcessor<T extends Detail> implements Disposable {
   readonly #controller: AbortController = new AbortController();
-  readonly #items: IdItem<T>[] = [];
-  readonly #source: Source<T>;
+  readonly #items: UniqueOrderedList<IdItem<T>>;
   readonly #threshold: number;
   readonly #chunkSize: number;
   readonly #chunkInterval: number;
@@ -28,17 +29,24 @@ export class CollectProcessor<T extends Detail> implements Disposable {
   #paused?: PromiseWithResolvers<void>;
 
   constructor(
-    source: Source<T>,
-    options: CollectProcessorOptions = {},
+    readonly source: Source<T>,
+    options: CollectProcessorOptions<T> = {},
   ) {
-    this.#source = source;
     this.#threshold = options.threshold ?? THRESHOLD;
     this.#chunkSize = options.chunkSize ?? CHUNK_SIZE;
     this.#chunkInterval = options.chunkInterval ?? CHUNK_INTERVAL;
+    this.#items = new UniqueOrderedList<IdItem<T>>(
+      options.initialItems ?? [],
+      {
+        // We need to compare "value" rather than "id" for uniqueness,
+        // to implement the "resume" functionality correctly.
+        identifier: (item) => item.value,
+      },
+    );
   }
 
-  get items() {
-    return this.#items;
+  get items(): readonly IdItem<T>[] {
+    return this.#items.items;
   }
 
   #validateAvailability(): void {
@@ -65,11 +73,11 @@ export class CollectProcessor<T extends Detail> implements Disposable {
       dispatch({ type: "collect-processor-started" });
       const signal = this.#controller.signal;
       const iter = take(
-        this.#source.collect(denops, params, { signal }),
+        this.source.collect(denops, params, { signal }),
         this.#threshold,
       );
       const update = (chunk: Iterable<IdItem<T>>) => {
-        const offset = this.#items.length;
+        const offset = this.#items.size;
         this.#items.push(
           ...map(chunk, (item, i) => ({ ...item, id: i + offset })),
         );

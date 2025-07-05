@@ -14,51 +14,58 @@ const HEIGHT = 10;
 const SCROLL_OFFSET = 2;
 
 export type RenderProcessorOptions = {
+  initialIndex?: number;
+  initialCursor?: number;
+  initialOffset?: number;
   height?: number;
   scrollOffset?: number;
 };
 
 export class RenderProcessor<T extends Detail> implements Disposable {
   readonly #controller: AbortController = new AbortController();
-  readonly #renderers: ItemBelt<Renderer<T>>;
+  readonly renderers: ItemBelt<Renderer<T>>;
   #height: number;
   #scrollOffset: number;
   #processing?: Promise<void>;
   #reserved?: () => void;
   #items: DisplayItem<T>[] = [];
-  #itemCount: number = 0;
-  #cursor: number = 0;
-  #offset: number = 0;
+  #itemCount = 0;
+  #cursor: number;
+  #offset: number;
 
   constructor(
     renderers: readonly Renderer<T>[],
     options: RenderProcessorOptions = {},
   ) {
-    this.#renderers = new ItemBelt(renderers);
+    this.renderers = new ItemBelt(renderers, {
+      index: options.initialIndex,
+    });
     this.#height = options.height ?? HEIGHT;
     this.#scrollOffset = options.scrollOffset ?? SCROLL_OFFSET;
+    this.#cursor = options.initialCursor ?? 0;
+    this.#offset = options.initialOffset ?? 0;
   }
 
   get #renderer(): Renderer<T> | undefined {
-    return this.#renderers.current;
+    return this.renderers.current;
   }
 
   get rendererCount(): number {
-    return this.#renderers.count;
+    return this.renderers.count;
   }
 
   get rendererIndex(): number {
-    return this.#renderers.index;
+    return this.renderers.index;
   }
 
   set rendererIndex(index: number | "$") {
     if (index === "$") {
-      index = this.#renderers.count;
+      index = this.renderers.count;
     }
-    this.#renderers.index = index;
+    this.renderers.index = index;
   }
 
-  get items() {
+  get items(): readonly DisplayItem<T>[] {
     return this.#items;
   }
 

@@ -26,9 +26,9 @@ import {
 import { list as buildListSource } from "../extension/source/list.ts";
 import { withHandleError } from "../error.ts";
 
-export type SubmatchContext = InvokeParams<Detail> & {
+export type SubmatchContext<T extends Detail> = InvokeParams<T> & {
   readonly _submatch: {
-    readonly pickerParams: PickerParams<Detail, string>;
+    readonly pickerParams: PickerParams<T, string>;
   };
 };
 
@@ -55,9 +55,9 @@ export const main: Entrypoint = (denops) => {
   };
 };
 
-async function submatchStart(
+async function submatchStart<T extends Detail>(
   denops: Denops,
-  context: SubmatchContext,
+  context: SubmatchContext<T>,
   params: SubmatchParams,
   options: { signal?: AbortSignal } = {},
 ): Promise<void | true> {
@@ -106,7 +106,8 @@ const isSubmatchContext = is.ObjectOf({
   _submatch: is.ObjectOf({
     pickerParams: isPickerParams,
   }),
-}) satisfies Predicate<SubmatchContext>;
+  // deno-lint-ignore no-explicit-any
+}) satisfies Predicate<SubmatchContext<any>>;
 
 const isSubmatchParams = is.ObjectOf({
   matchers: is.ArrayOf(isMatcher) as Predicate<

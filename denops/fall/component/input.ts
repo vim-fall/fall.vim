@@ -24,6 +24,9 @@ export type InputComponentParams = ComponentProperties & {
   /** The title of the input component */
   readonly title?: string;
 
+  /** The command line input text */
+  readonly cmdline?: string;
+
   /** Optional spinner sequence to show during processing */
   readonly spinner?: readonly string[];
 
@@ -77,11 +80,18 @@ export class InputComponent extends BaseComponent {
   #modifiedContent = true;
 
   constructor(
-    { title, spinner, headSymbol, failSymbol, ...params }:
-      InputComponentParams = {},
+    {
+      title,
+      cmdline,
+      spinner,
+      headSymbol,
+      failSymbol,
+      ...params
+    }: InputComponentParams = {},
   ) {
     super(params);
     this.#title = title ?? "";
+    this.#cmdline = cmdline ?? "";
     this.#spinner = new Spinner(spinner ?? SPINNER);
     this.#headSymbol = headSymbol ?? HEAD_SYMBOL;
     this.#failSymbol = failSymbol ?? FAIL_SYMBOL;

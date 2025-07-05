@@ -13,7 +13,10 @@ const THRESHOLD = 100000;
 const CHUNK_SIZE = 1000;
 const CHUNK_INTERVAL = 100;
 
-export type MatchProcessorOptions = {
+export type MatchProcessorOptions<T extends Detail> = {
+  initialItems?: readonly IdItem<T>[];
+  initialQuery?: string;
+  initialIndex?: number;
   interval?: number;
   threshold?: number;
   chunkSize?: number;
@@ -22,7 +25,7 @@ export type MatchProcessorOptions = {
 };
 
 export class MatchProcessor<T extends Detail> implements Disposable {
-  readonly #matchers: ItemBelt<Matcher<T>>;
+  readonly matchers: ItemBelt<Matcher<T>>;
   readonly #interval: number;
   readonly #threshold: number;
   readonly #chunkSize: number;
@@ -31,22 +34,27 @@ export class MatchProcessor<T extends Detail> implements Disposable {
   #controller: AbortController = new AbortController();
   #processing?: Promise<void>;
   #reserved?: () => void;
-  #items: IdItem<T>[] = [];
+  #items: IdItem<T>[];
+  #previousQuery?: string;
 
   constructor(
     matchers: readonly [Matcher<T>, ...Matcher<T>[]],
-    options: MatchProcessorOptions = {},
+    options: MatchProcessorOptions<T> = {},
   ) {
-    this.#matchers = new ItemBelt(matchers);
+    this.matchers = new ItemBelt(matchers, {
+      index: options.initialIndex,
+    });
     this.#interval = options.interval ?? INTERVAL;
     this.#threshold = options.threshold ?? THRESHOLD;
     this.#chunkSize = options.chunkSize ?? CHUNK_SIZE;
     this.#chunkInterval = options.chunkInterval ?? CHUNK_INTERVAL;
     this.#incremental = options.incremental ?? false;
+    this.#items = options.initialItems?.slice() ?? [];
+    this.#previousQuery = options.initialQuery;
   }
 
   get #matcher(): Matcher<T> {
-    return this.#matchers.current!;
+    return this.matchers.current!;
   }
 
   get items(): IdItem<T>[] {
@@ -54,18 +62,18 @@ export class MatchProcessor<T extends Detail> implements Disposable {
   }
 
   get matcherCount(): number {
-    return this.#matchers.count;
+    return this.matchers.count;
   }
 
   get matcherIndex(): number {
-    return this.#matchers.index;
+    return this.matchers.index;
   }
 
   set matcherIndex(index: number | "$") {
     if (index === "$") {
-      index = this.#matchers.count;
+      index = this.matchers.count;
     }
-    this.#matchers.index = index;
+    this.matchers.index = index;
   }
 
   #validateAvailability(): void {
@@ -85,7 +93,12 @@ export class MatchProcessor<T extends Detail> implements Disposable {
     options?: { restart?: boolean },
   ): void {
     this.#validateAvailability();
-    if (this.#processing) {
+    if (query === this.#previousQuery) {
+      if (!this.#processing) {
+        dispatch({ type: "match-processor-succeeded" });
+      }
+      return;
+    } else if (this.#processing) {
       // Keep most recent start request for later.
       this.#reserved = () => this.start(denops, { items, query }, options);
       // If restart is requested, we need to abort the current processing.
@@ -98,6 +111,7 @@ export class MatchProcessor<T extends Detail> implements Disposable {
     }
     this.#processing = (async () => {
       dispatch({ type: "match-processor-started" });
+      this.#previousQuery = query;
       const signal = this.#controller.signal;
       const iter = take(
         this.#matcher.match(denops, { items, query }, { signal }),
