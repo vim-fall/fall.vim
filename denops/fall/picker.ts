@@ -655,6 +655,12 @@ export class Picker<T extends Detail> implements AsyncDisposable {
         break;
       case "collect-processor-succeeded":
         this.#inputComponent.collecting = false;
+        reserve((denops) => {
+          this.#matchProcessor.start(denops, {
+            items: this.#collectProcessor.items,
+            query: this.#inputComponent.cmdline,
+          });
+        });
         break;
       case "collect-processor-failed": {
         if (event.err === null) {
