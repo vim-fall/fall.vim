@@ -13,7 +13,9 @@ const THRESHOLD = 100000;
 const CHUNK_SIZE = 1000;
 const CHUNK_INTERVAL = 100;
 
-export type MatchProcessorOptions = {
+export type MatchProcessorOptions<T extends Detail> = {
+  initialItems?: readonly IdItem<T>[];
+  initialQuery?: string;
   initialIndex?: number;
   interval?: number;
   threshold?: number;
@@ -32,11 +34,12 @@ export class MatchProcessor<T extends Detail> implements Disposable {
   #controller: AbortController = new AbortController();
   #processing?: Promise<void>;
   #reserved?: () => void;
-  #items: IdItem<T>[] = [];
+  #items: IdItem<T>[];
+  #previousQuery?: string;
 
   constructor(
     matchers: readonly [Matcher<T>, ...Matcher<T>[]],
-    options: MatchProcessorOptions = {},
+    options: MatchProcessorOptions<T> = {},
   ) {
     this.matchers = new ItemBelt(matchers, {
       index: options.initialIndex,
@@ -46,6 +49,8 @@ export class MatchProcessor<T extends Detail> implements Disposable {
     this.#chunkSize = options.chunkSize ?? CHUNK_SIZE;
     this.#chunkInterval = options.chunkInterval ?? CHUNK_INTERVAL;
     this.#incremental = options.incremental ?? false;
+    this.#items = options.initialItems?.slice() ?? [];
+    this.#previousQuery = options.initialQuery;
   }
 
   get #matcher(): Matcher<T> {
@@ -88,7 +93,12 @@ export class MatchProcessor<T extends Detail> implements Disposable {
     options?: { restart?: boolean },
   ): void {
     this.#validateAvailability();
-    if (this.#processing) {
+    if (query === this.#previousQuery) {
+      if (!this.#processing) {
+        dispatch({ type: "match-processor-succeeded" });
+      }
+      return;
+    } else if (this.#processing) {
       // Keep most recent start request for later.
       this.#reserved = () => this.start(denops, { items, query }, options);
       // If restart is requested, we need to abort the current processing.
@@ -101,6 +111,7 @@ export class MatchProcessor<T extends Detail> implements Disposable {
     }
     this.#processing = (async () => {
       dispatch({ type: "match-processor-started" });
+      this.#previousQuery = query;
       const signal = this.#controller.signal;
       const iter = take(
         this.#matcher.match(denops, { items, query }, { signal }),

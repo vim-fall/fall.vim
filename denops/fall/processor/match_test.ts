@@ -399,19 +399,19 @@ Deno.test("MatchProcessor", async (t) => {
       );
       processor.start(denops, {
         items: [{ id: 0, value: "0", detail: {} }],
-        query: "",
+        query: "q0",
       });
       processor.start(denops, {
         items: [{ id: 1, value: "1", detail: {} }],
-        query: "",
+        query: "q1",
       });
       processor.start(denops, {
         items: [{ id: 2, value: "2", detail: {} }],
-        query: "",
+        query: "q2",
       });
       processor.start(denops, {
         items: [{ id: 3, value: "3", detail: {} }],
-        query: "",
+        query: "q3",
       });
 
       assertEquals(called, []);
@@ -450,19 +450,19 @@ Deno.test("MatchProcessor", async (t) => {
       );
       processor.start(denops, {
         items: [{ id: 0, value: "0", detail: {} }],
-        query: "",
+        query: "q0",
       }, { restart: true });
       processor.start(denops, {
         items: [{ id: 1, value: "1", detail: {} }],
-        query: "",
+        query: "q1",
       }, { restart: true });
       processor.start(denops, {
         items: [{ id: 2, value: "2", detail: {} }],
-        query: "",
+        query: "q2",
       }, { restart: true });
       processor.start(denops, {
         items: [{ id: 3, value: "3", detail: {} }],
-        query: "",
+        query: "q3",
       }, { restart: true });
 
       assertEquals(called, []);
@@ -470,12 +470,12 @@ Deno.test("MatchProcessor", async (t) => {
       notify.notify();
       await flushPromises();
 
-      assertEquals(called, []);
+      assertEquals(called, [0]);
 
       notify.notify();
       await flushPromises();
 
-      assertEquals(called, [3]);
+      assertEquals(called, [0, 3]);
     },
   );
 
