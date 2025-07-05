@@ -14,6 +14,7 @@ const CHUNK_SIZE = 1000;
 const CHUNK_INTERVAL = 100;
 
 export type MatchProcessorOptions = {
+  initialIndex?: number;
   interval?: number;
   threshold?: number;
   chunkSize?: number;
@@ -37,7 +38,9 @@ export class MatchProcessor<T extends Detail> implements Disposable {
     matchers: readonly [Matcher<T>, ...Matcher<T>[]],
     options: MatchProcessorOptions = {},
   ) {
-    this.matchers = new ItemBelt(matchers);
+    this.matchers = new ItemBelt(matchers, {
+      index: options.initialIndex,
+    });
     this.#interval = options.interval ?? INTERVAL;
     this.#threshold = options.threshold ?? THRESHOLD;
     this.#chunkSize = options.chunkSize ?? CHUNK_SIZE;

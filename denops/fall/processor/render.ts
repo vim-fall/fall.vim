@@ -14,6 +14,7 @@ const HEIGHT = 10;
 const SCROLL_OFFSET = 2;
 
 export type RenderProcessorOptions = {
+  initialIndex?: number;
   height?: number;
   scrollOffset?: number;
 };
@@ -34,7 +35,9 @@ export class RenderProcessor<T extends Detail> implements Disposable {
     renderers: readonly Renderer<T>[],
     options: RenderProcessorOptions = {},
   ) {
-    this.renderers = new ItemBelt(renderers);
+    this.renderers = new ItemBelt(renderers, {
+      index: options.initialIndex,
+    });
     this.#height = options.height ?? HEIGHT;
     this.#scrollOffset = options.scrollOffset ?? SCROLL_OFFSET;
   }

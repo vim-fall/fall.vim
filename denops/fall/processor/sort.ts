@@ -5,15 +5,23 @@ import type { Sorter } from "jsr:@vim-fall/core@^0.3.0/sorter";
 import { ItemBelt } from "../lib/item_belt.ts";
 import { dispatch } from "../event.ts";
 
+export type SortProcessorOptions = {
+  initialIndex?: number;
+};
+
 export class SortProcessor<T extends Detail> implements Disposable {
   readonly #controller: AbortController = new AbortController();
   readonly sorters: ItemBelt<Sorter<T>>;
   #processing?: Promise<void>;
   #reserved?: () => void;
   #items: IdItem<T>[] = [];
-
-  constructor(sorters: readonly Sorter<T>[]) {
-    this.sorters = new ItemBelt(sorters);
+  constructor(
+    sorters: readonly Sorter<T>[],
+    options: SortProcessorOptions = {},
+  ) {
+    this.sorters = new ItemBelt(sorters, {
+      index: options.initialIndex,
+    });
   }
 
   get #sorter(): Sorter<T> | undefined {

@@ -8,6 +8,10 @@ import type {
 import { ItemBelt } from "../lib/item_belt.ts";
 import { dispatch } from "../event.ts";
 
+export type PreviewProcessorOptions = {
+  initialIndex?: number;
+};
+
 export class PreviewProcessor<T extends Detail> implements Disposable {
   readonly #controller: AbortController = new AbortController();
   readonly previewers: ItemBelt<Previewer<T>>;
@@ -15,8 +19,13 @@ export class PreviewProcessor<T extends Detail> implements Disposable {
   #reserved?: () => void;
   #item: PreviewItem | undefined = undefined;
 
-  constructor(previewers: readonly Previewer<T>[]) {
-    this.previewers = new ItemBelt(previewers);
+  constructor(
+    previewers: readonly Previewer<T>[],
+    options: PreviewProcessorOptions = {},
+  ) {
+    this.previewers = new ItemBelt(previewers, {
+      index: options.initialIndex,
+    });
   }
 
   get #previewer(): Previewer<T> | undefined {
