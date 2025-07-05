@@ -15,6 +15,8 @@ const SCROLL_OFFSET = 2;
 
 export type RenderProcessorOptions = {
   initialIndex?: number;
+  initialCursor?: number;
+  initialOffset?: number;
   height?: number;
   scrollOffset?: number;
 };
@@ -27,9 +29,9 @@ export class RenderProcessor<T extends Detail> implements Disposable {
   #processing?: Promise<void>;
   #reserved?: () => void;
   #items: DisplayItem<T>[] = [];
-  #itemCount: number = 0;
-  #cursor: number = 0;
-  #offset: number = 0;
+  #itemCount = 0;
+  #cursor: number;
+  #offset: number;
 
   constructor(
     renderers: readonly Renderer<T>[],
@@ -40,6 +42,8 @@ export class RenderProcessor<T extends Detail> implements Disposable {
     });
     this.#height = options.height ?? HEIGHT;
     this.#scrollOffset = options.scrollOffset ?? SCROLL_OFFSET;
+    this.#cursor = options.initialCursor ?? 0;
+    this.#offset = options.initialOffset ?? 0;
   }
 
   get #renderer(): Renderer<T> | undefined {
@@ -61,7 +65,7 @@ export class RenderProcessor<T extends Detail> implements Disposable {
     this.renderers.index = index;
   }
 
-  get items() {
+  get items(): readonly DisplayItem<T>[] {
     return this.#items;
   }
 
