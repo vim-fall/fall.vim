@@ -104,7 +104,7 @@ Users can define additional sources in "custom.ts" to suit their needs. See
 |fall-customization| for customization details.
 
 Within the picker window, the following default mappings are applied. These
-can be confirmed or customized via the <F1> help prompt.
+can be confirmed via the <F1> help prompt.
 
 Navigation~
 Key		Description~
@@ -155,7 +155,7 @@ Session Management~
 Fall provides session management commands to save and resume picker states:
 
 						*:FallSession*
-:FallSession	Open the session manager to view, resume, or delete saved
+:FallSession	Open the session manager to view and resume saved
 		sessions. Sessions preserve the picker state including
 		query, selections, and cursor position.
 
@@ -816,7 +816,8 @@ Coordinator~
 	
 	Built-in coordinators:
 	- modern: Floating windows with customizable dimensions
-	- stack: Stacked layout for smaller screens
+	- compact: Compact layout with minimal spacing
+	- separate: Separate windows for each component
 
 						*fall-module-theme*
 Theme~
@@ -825,7 +826,9 @@ Theme~
 	
 	Built-in themes:
 	- MODERN_THEME: Clean, modern appearance with rounded borders
-	- MINIMAL_THEME: Simplified appearance without decorations
+	- ASCII_THEME: ASCII art style borders
+	- DOUBLE_THEME: Double-line borders
+	- SINGLE_THEME: Single-line borders
 
 						*fall-module-source*
 Source~
@@ -842,7 +845,7 @@ Matcher~
 	can be incremental (reusing previous results) or non-incremental.
 	
 	Interface: (items, query) -> AsyncIterableIterator<MatchedItem>
-	Examples: fzf (fuzzy), substring, regexp, smartcase
+	Examples: fzf (fuzzy matching)
 
 						*fall-module-curator*
 Curator~
@@ -859,7 +862,7 @@ Sorter~
 	can be chained to create complex sorting behaviors.
 	
 	Interface: (items) -> void (sorts in-place)
-	Examples: alphabetical, length, score, mtime
+	Examples: noop (no sorting), lexical (alphabetical)
 
 						*fall-module-renderer*
 Renderer~
@@ -868,7 +871,7 @@ Renderer~
 	modifying the underlying data.
 	
 	Interface: (items) -> void (modifies display properties)
-	Examples: nerdfont (adds icons), filename (path formatting)
+	Examples: nerdfont (adds icons), smartPath (intelligent path display)
 
 						*fall-module-previewer*
 Previewer~
@@ -876,7 +879,7 @@ Previewer~
 	can display file contents, documentation, or any relevant information.
 	
 	Interface: (item) -> PreviewContent
-	Examples: file (with syntax), buffer, help
+	Examples: file (with syntax highlighting), buffer, helptag
 
 						*fall-module-action*
 Action~
@@ -916,9 +919,9 @@ Common Issues~
    - Disable preview for large files
 
 4. Custom source not working
-   - Validate TypeScript syntax: `:FallCustomCheck`
    - Ensure source returns proper item structure
    - Check Deno console for runtime errors
+   - Review TypeScript syntax errors in the editor
 
 5. Key mappings not working
    - Confirm no conflicts: `:verbose cmap <key>`
@@ -934,10 +937,6 @@ Enable verbose logging:
 View Denops server output:
 >vim
 	:DenopsServer
-<
-Check custom file syntax:
->vim
-	:FallCustomCheck
 <
 =============================================================================
 EXAMPLES					*fall-examples*
