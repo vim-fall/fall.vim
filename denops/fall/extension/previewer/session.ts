@@ -2,17 +2,16 @@ import type { PreviewItem } from "jsr:@vim-fall/core@^0.3.0/item";
 import type { Previewer } from "jsr:@vim-fall/core@^0.3.0/previewer";
 import { definePreviewer } from "jsr:@vim-fall/std@^0.10.0/previewer";
 import type { Detail } from "../source/session.ts";
-import { decompressPickerSession } from "../../session.ts";
 
 export function session(): Previewer<Detail> {
-  return definePreviewer(async (_denops, { item }, { signal }) => {
+  return definePreviewer((_denops, { item }, { signal }) => {
     if (!item || signal?.aborted) {
       return undefined;
     }
 
     try {
-      // Decompress the session to access its data
-      const session = await decompressPickerSession(item.detail);
+      // Access the session data directly
+      const session = item.detail;
 
       const lines: string[] = [];
 

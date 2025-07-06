@@ -448,7 +448,7 @@ COMMAND						*fall-command*
 	- "@action" (action selection picker)
 	- "@session" (the session picker itself)
 
-	Sessions are stored in compressed format to minimize memory usage.
+	Sessions are stored in memory for quick access.
 >
 	" Open the session picker
 	:FallSession
