@@ -1,38 +1,28 @@
-import { test } from "jsr:@denops/test@^3.0.0";
-import { assertEquals, assertRejects } from "jsr:@std/assert@^1.0.0";
-import { AssertError } from "jsr:@core/unknownutil@^4.3.0/assert";
+import { DenopsStub } from "jsr:@denops/test@^3.0.0";
+import { assertEquals } from "jsr:@std/assert@^1.0.0";
+import { describe, it } from "jsr:@std/testing@^1.0.0/bdd";
 
 import { main } from "./submatch.ts";
 
-test({
-  mode: "all",
-  name: "submatch - register dispatcher",
-  fn: async (denops) => {
+describe("submatch", () => {
+  it("should register submatch dispatcher", () => {
+    const denops = new DenopsStub();
     main(denops);
 
     assertEquals(typeof denops.dispatcher["submatch"], "function");
-  },
-});
+  });
 
-test({
-  mode: "all",
-  name: "submatch - reject invalid context",
-  fn: async (denops) => {
+  it("should handle invalid context gracefully", async () => {
+    const denops = new DenopsStub();
     main(denops);
 
-    await assertRejects(
-      async () => {
-        await denops.dispatcher["submatch"]({}, {}, {});
-      },
-      AssertError,
-    );
-  },
-});
+    // withHandleError catches errors, so it won't reject but return undefined
+    const result = await denops.dispatcher["submatch"]({}, {}, {});
+    assertEquals(result, undefined);
+  });
 
-test({
-  mode: "all",
-  name: "submatch - reject invalid params",
-  fn: async (denops) => {
+  it("should handle invalid params gracefully", async () => {
+    const denops = new DenopsStub();
     main(denops);
 
     const validContext = {
@@ -56,31 +46,27 @@ test({
       },
     };
 
-    await assertRejects(
-      async () => {
-        await denops.dispatcher["submatch"](validContext, {}, {});
-      },
-      AssertError,
-    );
-  },
-});
+    // withHandleError catches errors, so it won't reject but return undefined
+    const result = await denops.dispatcher["submatch"](validContext, {}, {});
+    assertEquals(result, undefined);
+  });
 
-test({
-  mode: "all",
-  name: "submatch - accept valid call",
-  fn: async (denops) => {
-    main(denops);
+  it("should process valid submatch call", async () => {
+    const denops = new DenopsStub();
 
-    // Mock the picker dispatcher
-    const originalDispatcher = denops.dispatcher;
-    let pickerCalled = false;
-    denops.dispatcher = {
-      ...originalDispatcher,
-      picker: () => {
-        pickerCalled = true;
-        return Promise.resolve(undefined);
-      },
+    // Track dispatch calls
+    let dispatchCalled = false;
+    let dispatchArgs: unknown[] = [];
+
+    denops.dispatch = (name: string, ...args: unknown[]) => {
+      if (name === denops.name && args[0] === "picker") {
+        dispatchCalled = true;
+        dispatchArgs = args;
+      }
+      return Promise.resolve(undefined);
     };
+
+    main(denops);
 
     const validContext = {
       filteredItems: [{ value: "item1" }, { value: "item2" }],
@@ -113,29 +99,24 @@ test({
 
     await denops.dispatcher["submatch"](validContext, validParams, {});
 
-    assertEquals(pickerCalled, true);
+    assertEquals(dispatchCalled, true);
+    assertEquals(dispatchArgs[0], "picker");
+  });
 
-    // Restore
-    denops.dispatcher = originalDispatcher;
-  },
-});
+  it("should forward optional parameters to picker", async () => {
+    const denops = new DenopsStub();
 
-test({
-  mode: "all",
-  name: "submatch - handle optional parameters",
-  fn: async (denops) => {
-    main(denops);
+    // Track dispatch calls
+    let capturedPickerParams: unknown;
 
-    // Mock the picker dispatcher
-    const originalDispatcher = denops.dispatcher;
-    let capturedParams: unknown;
-    denops.dispatcher = {
-      ...originalDispatcher,
-      picker: (_args: unknown, params: unknown) => {
-        capturedParams = params;
-        return Promise.resolve(undefined);
-      },
+    denops.dispatch = (name: string, ...args: unknown[]) => {
+      if (name === denops.name && args[0] === "picker") {
+        capturedPickerParams = args[2]; // The picker params
+      }
+      return Promise.resolve(undefined);
     };
+
+    main(denops);
 
     const validContext = {
       filteredItems: [{ value: "item1" }],
@@ -186,51 +167,27 @@ test({
 
     await denops.dispatcher["submatch"](validContext, validParams, {});
 
-    assertEquals(typeof capturedParams, "object");
-    assertEquals(
-      (capturedParams as Record<string, unknown>).defaultAction,
-      "custom",
-    );
-    assertEquals(
-      Array.isArray((capturedParams as Record<string, unknown>).sorters),
-      true,
-    );
-    assertEquals(
-      Array.isArray((capturedParams as Record<string, unknown>).renderers),
-      true,
-    );
-    assertEquals(
-      Array.isArray((capturedParams as Record<string, unknown>).previewers),
-      true,
-    );
-    assertEquals(
-      typeof (capturedParams as Record<string, unknown>).coordinator,
-      "object",
-    );
-    assertEquals(
-      typeof (capturedParams as Record<string, unknown>).theme,
-      "object",
-    );
+    assertEquals(typeof capturedPickerParams, "object");
+    const params = capturedPickerParams as Record<string, unknown>;
+    assertEquals(params.defaultAction, "custom");
+    assertEquals(Array.isArray(params.sorters), true);
+    assertEquals(Array.isArray(params.renderers), true);
+    assertEquals(Array.isArray(params.previewers), true);
+    assertEquals(typeof params.coordinator, "object");
+    assertEquals(typeof params.theme, "object");
+  });
 
-    // Restore
-    denops.dispatcher = originalDispatcher;
-  },
-});
+  it("should return true when picker returns true", async () => {
+    const denops = new DenopsStub();
 
-test({
-  mode: "all",
-  name: "submatch - return true when picker returns true",
-  fn: async (denops) => {
-    main(denops);
-
-    // Mock the picker dispatcher
-    const originalDispatcher = denops.dispatcher;
-    denops.dispatcher = {
-      ...originalDispatcher,
-      picker: () => {
+    denops.dispatch = (name: string, ...args: unknown[]) => {
+      if (name === denops.name && args[0] === "picker") {
         return Promise.resolve(true);
-      },
+      }
+      return Promise.resolve(undefined);
     };
+
+    main(denops);
 
     const validContext = {
       filteredItems: [],
@@ -268,8 +225,5 @@ test({
     );
 
     assertEquals(result, true);
-
-    // Restore
-    denops.dispatcher = originalDispatcher;
-  },
+  });
 });
