@@ -1,7 +1,8 @@
 {
   "exclude": [
     "docs/**",
-    ".coverage/**"
+    ".coverage/**",
+    ".worktrees/**"
   ],
   "tasks": {
     "check": "deno check ./**/*.ts",

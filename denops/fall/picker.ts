@@ -18,6 +18,7 @@ import type { Previewer } from "jsr:@vim-fall/core@^0.3.0/previewer";
 import type { Theme } from "jsr:@vim-fall/core@^0.3.0/theme";
 
 import { Scheduler } from "./lib/scheduler.ts";
+import { debounce } from "./lib/debounce.ts";
 import { Cmdliner } from "./util/cmdliner.ts";
 import { isIncrementalMatcher } from "./util/predicate.ts";
 import { buildMappingHelpPages } from "./util/mapping.ts";
@@ -37,6 +38,7 @@ import { HelpComponent } from "./component/help.ts";
 import { consume, type Event } from "./event.ts";
 
 const SCHEDULER_INTERVAL = 10;
+const PREVIEW_DEBOUNCE_DELAY = 150;
 const MATCHER_ICON = "🅼 ";
 const SORTER_ICON = "🆂 ";
 const RENDERER_ICON = "🆁 ";
@@ -70,6 +72,7 @@ export type PickerResult<T extends Detail> = {
 
 export type PickerOptions = {
   schedulerInterval?: number;
+  previewDebounceDelay?: number;
 };
 
 export type PickerContext<T extends Detail> = {
@@ -89,6 +92,7 @@ export class Picker<T extends Detail> implements AsyncDisposable {
   static readonly ZINDEX_ALLOCATION = 4;
   readonly #stack = new AsyncDisposableStack();
   readonly #schedulerInterval: number;
+  readonly #previewDebounceDelay: number;
   readonly #name: string;
   readonly #coordinator: Coordinator;
   readonly #collectProcessor: CollectProcessor<T>;
@@ -110,6 +114,8 @@ export class Picker<T extends Detail> implements AsyncDisposable {
 
   constructor(params: PickerParams<T>, options: PickerOptions = {}) {
     this.#schedulerInterval = options.schedulerInterval ?? SCHEDULER_INTERVAL;
+    this.#previewDebounceDelay = options.previewDebounceDelay ??
+      PREVIEW_DEBOUNCE_DELAY;
 
     const { name, theme, coordinator, zindex = 50, context } = params;
     this.#name = name;
@@ -358,6 +364,10 @@ export class Picker<T extends Detail> implements AsyncDisposable {
     const reserve = (callback: ReservedCallback) => {
       reservedCallbacks.push(callback);
     };
+    const reservePreviewDebounced = debounce(reserve, {
+      delay: this.#previewDebounceDelay,
+      signal,
+    });
     const cmdliner = new Cmdliner({
       cmdline: this.#inputComponent.cmdline,
       cmdpos: this.#inputComponent.cmdpos,
@@ -368,7 +378,13 @@ export class Picker<T extends Detail> implements AsyncDisposable {
       await cmdliner.check(denops);
 
       // Handle events synchronously
-      consume((event) => this.#handleEvent(event, { accept, reserve }));
+      consume((event) =>
+        this.#handleEvent(event, {
+          accept,
+          reserve,
+          reservePreviewDebounced,
+        })
+      );
 
       // Handle reserved callbacks asynchronously
       for (const callback of reservedCallbacks) {
@@ -469,9 +485,10 @@ export class Picker<T extends Detail> implements AsyncDisposable {
     }
   }
 
-  #handleEvent(event: Event, { accept, reserve }: {
+  #handleEvent(event: Event, { accept, reserve, reservePreviewDebounced }: {
     accept: (name: string) => Promise<void>;
     reserve: (callback: ReservedCallback) => void;
+    reservePreviewDebounced: (callback: ReservedCallback) => void;
   }): void {
     switch (event.type) {
       case "vim-cmdline-changed":
@@ -559,13 +576,9 @@ export class Picker<T extends Detail> implements AsyncDisposable {
         this.#sortProcessor.sorterIndex = index;
         this.#listComponent.title = this.#getExtensionIndicator();
         reserve((denops) => {
-          // NOTE:
-          // We need to restart from the matcher processor because
-          // sorters and renderers applies changes in-place thus
-          // the items would be polluted.
-          this.#matchProcessor.start(denops, {
-            items: this.#collectProcessor.items,
-            query: this.#inputComponent.cmdline,
+          // Restart the sort processor with items from the match processor
+          this.#sortProcessor.start(denops, {
+            items: this.#matchProcessor.items,
           });
         });
         break;
@@ -574,13 +587,9 @@ export class Picker<T extends Detail> implements AsyncDisposable {
         this.#sortProcessor.sorterIndex = event.index;
         this.#listComponent.title = this.#getExtensionIndicator();
         reserve((denops) => {
-          // NOTE:
-          // We need to restart from the matcher processor because
-          // sorters and renderers applies changes in-place thus
-          // the items would be polluted.
-          this.#matchProcessor.start(denops, {
-            items: this.#collectProcessor.items,
-            query: this.#inputComponent.cmdline,
+          // Restart the sort processor with items from the match processor
+          this.#sortProcessor.start(denops, {
+            items: this.#matchProcessor.items,
           });
         });
         break;
@@ -596,13 +605,9 @@ export class Picker<T extends Detail> implements AsyncDisposable {
         this.#renderProcessor.rendererIndex = index;
         this.#listComponent.title = this.#getExtensionIndicator();
         reserve((denops) => {
-          // NOTE:
-          // We need to restart from the matcher processor because
-          // sorters and renderers applies changes in-place thus
-          // the items would be polluted.
-          this.#matchProcessor.start(denops, {
-            items: this.#collectProcessor.items,
-            query: this.#inputComponent.cmdline,
+          // Restart the render processor with items from the sort processor
+          this.#renderProcessor.start(denops, {
+            items: this.#sortProcessor.items,
           });
         });
         break;
@@ -611,13 +616,9 @@ export class Picker<T extends Detail> implements AsyncDisposable {
         this.#renderProcessor.rendererIndex = event.index;
         this.#listComponent.title = this.#getExtensionIndicator();
         reserve((denops) => {
-          // NOTE:
-          // We need to restart from the matcher processor because
-          // sorters and renderers applies changes in-place thus
-          // the items would be polluted.
-          this.#matchProcessor.start(denops, {
-            items: this.#collectProcessor.items,
-            query: this.#inputComponent.cmdline,
+          // Restart the render processor with items from the sort processor
+          this.#renderProcessor.start(denops, {
+            items: this.#sortProcessor.items,
           });
         });
         break;
@@ -633,7 +634,7 @@ export class Picker<T extends Detail> implements AsyncDisposable {
         }
         this.#previewProcessor.previewerIndex = index;
         this.#listComponent.title = this.#getExtensionIndicator();
-        reserve((denops) => {
+        reservePreviewDebounced((denops) => {
           this.#previewProcessor?.start(denops, {
             item: this.#matchProcessor.items[this.#renderProcessor.cursor],
           });
@@ -644,7 +645,7 @@ export class Picker<T extends Detail> implements AsyncDisposable {
         if (!this.#previewProcessor) break;
         this.#previewProcessor.previewerIndex = event.index;
         this.#listComponent.title = this.#getExtensionIndicator();
-        reserve((denops) => {
+        reservePreviewDebounced((denops) => {
           this.#previewProcessor?.start(denops, {
             item: this.#matchProcessor.items[this.#renderProcessor.cursor],
           });
@@ -772,7 +773,7 @@ export class Picker<T extends Detail> implements AsyncDisposable {
         const line = this.#renderProcessor.line;
         this.#listComponent.items = this.#renderProcessor.items;
         this.#listComponent.execute(`silent! normal! ${line}G`);
-        reserve((denops) => {
+        reservePreviewDebounced((denops) => {
           this.#previewProcessor?.start(denops, {
             item: this.#matchProcessor.items[this.#renderProcessor.cursor],
           });

@@ -59,7 +59,7 @@ export class SortProcessor<T extends Detail> implements Disposable {
     }
   }
 
-  start(denops: Denops, { items }: { items: IdItem<T>[] }): void {
+  start(denops: Denops, { items }: { items: readonly IdItem<T>[] }): void {
     this.#validateAvailability();
     if (this.#processing) {
       // Keep most recent start request for later.
@@ -70,14 +70,17 @@ export class SortProcessor<T extends Detail> implements Disposable {
       dispatch({ type: "sort-processor-started" });
       const signal = this.#controller.signal;
 
+      // Create a shallow copy of the items array
+      const cloned = items.slice();
+
       await this.#sorter?.sort(
         denops,
-        { items },
+        { items: cloned },
         { signal },
       );
       signal.throwIfAborted();
 
-      this.#items = items;
+      this.#items = cloned;
       dispatch({ type: "sort-processor-succeeded" });
     })();
     this.#processing

@@ -79,6 +79,10 @@ export class InputComponent extends BaseComponent {
   #modifiedWindow = true;
   #modifiedContent = true;
 
+  // Cache for byte lengths to avoid repeated calculations
+  #prefixCache?: { value: string; byteLength: number };
+  #suffixCache?: { value: string; byteLength: number };
+
   constructor(
     {
       title,
@@ -287,9 +291,25 @@ export class InputComponent extends BaseComponent {
       this.#offset,
       this.#offset + cmdwidth,
     );
-    const prefixByteLength = getByteLength(prefix);
+
+    // Use cached byte lengths when possible
+    let prefixByteLength: number;
+    if (this.#prefixCache?.value === prefix) {
+      prefixByteLength = this.#prefixCache.byteLength;
+    } else {
+      prefixByteLength = getByteLength(prefix);
+      this.#prefixCache = { value: prefix, byteLength: prefixByteLength };
+    }
+
     const middleByteLength = getByteLength(middle);
-    const suffixByteLength = getByteLength(suffix);
+
+    let suffixByteLength: number;
+    if (this.#suffixCache?.value === suffix) {
+      suffixByteLength = this.#suffixCache.byteLength;
+    } else {
+      suffixByteLength = getByteLength(suffix);
+      this.#suffixCache = { value: suffix, byteLength: suffixByteLength };
+    }
 
     await buffer.replace(denops, bufnr, [prefix + middle + suffix]);
     signal?.throwIfAborted();

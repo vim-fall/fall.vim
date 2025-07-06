@@ -7,9 +7,15 @@ export function dispatch(event: Readonly<Event>): void {
 }
 
 export function consume(consumer: Consumer): void {
+  // Optimize: Swap arrays instead of creating new ones each time
   const events = eventQueue;
+  if (events.length === 0) return;
+
   eventQueue = [];
-  events.forEach(consumer);
+  // Use for loop instead of forEach for better performance
+  for (let i = 0; i < events.length; i++) {
+    consumer(events[i]);
+  }
 }
 
 type SelectMethod = "on" | "off" | "toggle";
