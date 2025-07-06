@@ -43,9 +43,9 @@ Deno.test("session management", async (t) => {
     assertEquals(Array.isArray(sessions), true);
   });
 
-  await t.step("savePickerSession stores a session", async () => {
+  await t.step("savePickerSession stores a session", () => {
     const session = createMockSession("test", 1);
-    await savePickerSession(session);
+    savePickerSession(session);
 
     const sessions = listPickerSessions();
     assertEquals(sessions.length >= 1, true);
@@ -55,11 +55,11 @@ Deno.test("session management", async (t) => {
 
   await t.step(
     "listPickerSessions returns sessions in reverse chronological order",
-    async () => {
+    () => {
       // Save multiple sessions
-      await savePickerSession(createMockSession("test1", 1));
-      await savePickerSession(createMockSession("test2", 2));
-      await savePickerSession(createMockSession("test3", 3));
+      savePickerSession(createMockSession("test1", 1));
+      savePickerSession(createMockSession("test2", 2));
+      savePickerSession(createMockSession("test3", 3));
 
       const sessions = listPickerSessions();
       // Most recent session should be first
@@ -71,10 +71,10 @@ Deno.test("session management", async (t) => {
 
   await t.step(
     "loadPickerSession retrieves the most recent session by default",
-    async () => {
-      await savePickerSession(createMockSession("recent", 99));
+    () => {
+      savePickerSession(createMockSession("recent", 99));
 
-      const session = await loadPickerSession();
+      const session = loadPickerSession();
       assertExists(session);
       assertEquals(session.name, "recent");
       assertEquals(session.args, ["arg1-99", "arg2-99"]);
@@ -85,46 +85,46 @@ Deno.test("session management", async (t) => {
 
   await t.step(
     "loadPickerSession retrieves session by index from latest",
-    async () => {
+    () => {
       // Clear and add fresh sessions
       for (let i = 0; i < 5; i++) {
-        await savePickerSession(createMockSession(`session${i}`, i));
+        savePickerSession(createMockSession(`session${i}`, i));
       }
 
       // Index 1 = most recent (session4)
-      const session0 = await loadPickerSession({ number: 1 });
+      const session0 = loadPickerSession({ number: 1 });
       assertExists(session0);
       assertEquals(session0.name, "session4");
 
       // Index 2 = second most recent (session3)
-      const session1 = await loadPickerSession({ number: 2 });
+      const session1 = loadPickerSession({ number: 2 });
       assertExists(session1);
       assertEquals(session1.name, "session3");
 
       // Index 3 = third most recent (session2)
-      const session2 = await loadPickerSession({ number: 3 });
+      const session2 = loadPickerSession({ number: 3 });
       assertExists(session2);
       assertEquals(session2.name, "session2");
     },
   );
 
-  await t.step("loadPickerSession filters by name", async () => {
+  await t.step("loadPickerSession filters by name", () => {
     // Add sessions with different names
-    await savePickerSession(createMockSession("file", 1));
-    await savePickerSession(createMockSession("buffer", 2));
-    await savePickerSession(createMockSession("file", 3));
-    await savePickerSession(createMockSession("buffer", 4));
-    await savePickerSession(createMockSession("file", 5));
+    savePickerSession(createMockSession("file", 1));
+    savePickerSession(createMockSession("buffer", 2));
+    savePickerSession(createMockSession("file", 3));
+    savePickerSession(createMockSession("buffer", 4));
+    savePickerSession(createMockSession("file", 5));
 
     // Load most recent "file" session
-    const fileSession = await loadPickerSession({ name: "file" });
+    const fileSession = loadPickerSession({ name: "file" });
     assertExists(fileSession);
     assertEquals(fileSession.name, "file");
     assertEquals(fileSession.context.query, "query-5");
     assertEquals(fileSession.context.cursor, 5); // 5 % 10
 
     // Load second most recent "file" session
-    const fileSession2 = await loadPickerSession({
+    const fileSession2 = loadPickerSession({
       name: "file",
       number: 2,
     });
@@ -134,7 +134,7 @@ Deno.test("session management", async (t) => {
     assertEquals(fileSession2.context.cursor, 3); // 3 % 10
 
     // Load most recent "buffer" session
-    const bufferSession = await loadPickerSession({ name: "buffer" });
+    const bufferSession = loadPickerSession({ name: "buffer" });
     assertExists(bufferSession);
     assertEquals(bufferSession.name, "buffer");
     assertEquals(bufferSession.context.query, "query-4");
@@ -143,20 +143,20 @@ Deno.test("session management", async (t) => {
 
   await t.step(
     "loadPickerSession returns undefined for non-existent session",
-    async () => {
+    () => {
       // Try to load a session with an index beyond available sessions
-      const session = await loadPickerSession({ number: 1000 });
+      const session = loadPickerSession({ number: 1000 });
       assertEquals(session, undefined);
 
       // Try to load a session with a name that doesn't exist
-      const namedSession = await loadPickerSession({ name: "non-existent" });
+      const namedSession = loadPickerSession({ name: "non-existent" });
       assertEquals(namedSession, undefined);
     },
   );
 
   await t.step(
-    "compression and decompression preserve session data",
-    async () => {
+    "session data is preserved without compression",
+    () => {
       const testItems: IdItem<Detail>[] = [
         { id: "test-1", value: "test item 1", detail: { foo: "bar" } },
         { id: "test-2", value: "test item 2", detail: { baz: 42 } },
@@ -180,8 +180,8 @@ Deno.test("session management", async (t) => {
         },
       };
 
-      await savePickerSession(sessionWithCustomContext);
-      const loadedSession = await loadPickerSession({
+      savePickerSession(sessionWithCustomContext);
+      const loadedSession = loadPickerSession({
         name: "compression-test",
       });
 
@@ -208,10 +208,10 @@ Deno.test("session management", async (t) => {
     },
   );
 
-  await t.step("respects MAX_SESSION_COUNT limit", async () => {
+  await t.step("respects MAX_SESSION_COUNT limit", () => {
     // Save more than MAX_SESSION_COUNT (100) sessions
     for (let i = 0; i < 105; i++) {
-      await savePickerSession(createMockSession(`session-limit-${i}`, i));
+      savePickerSession(createMockSession(`session-limit-${i}`, i));
     }
 
     const sessions = listPickerSessions();
@@ -227,7 +227,7 @@ Deno.test("session management", async (t) => {
     assertEquals(newestSession.name, "session-limit-104");
   });
 
-  await t.step("handles minimal context gracefully", async () => {
+  await t.step("handles minimal context gracefully", () => {
     const sessionWithMinimalContext = createMockSession("minimal-context", 1);
     const minimalSession: PickerSession<Detail> = {
       ...sessionWithMinimalContext,
@@ -244,8 +244,8 @@ Deno.test("session management", async (t) => {
       },
     };
 
-    await savePickerSession(minimalSession);
-    const loaded = await loadPickerSession({ name: "minimal-context" });
+    savePickerSession(minimalSession);
+    const loaded = loadPickerSession({ name: "minimal-context" });
 
     assertExists(loaded);
     assertEquals(loaded.context.query, "");
@@ -256,7 +256,7 @@ Deno.test("session management", async (t) => {
     assertEquals(loaded.context.cursor, 0);
   });
 
-  await t.step("handles special characters in session data", async () => {
+  await t.step("handles special characters in session data", () => {
     const specialItems: IdItem<Detail>[] = [
       { id: "emoji", value: "😀 emoji test 🎉", detail: { unicode: "✨" } },
       { id: "backslash", value: "backslash \\ test", detail: {} },
@@ -278,8 +278,8 @@ Deno.test("session management", async (t) => {
       },
     };
 
-    await savePickerSession(sessionWithSpecialChars);
-    const loaded = await loadPickerSession({ name: "special-chars" });
+    savePickerSession(sessionWithSpecialChars);
+    const loaded = loadPickerSession({ name: "special-chars" });
 
     assertExists(loaded);
     assertEquals(

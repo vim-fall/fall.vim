@@ -149,7 +149,7 @@ async function resumePicker(
   // Parse filter ({name}#{indexFromLatest})
   const [filterName, filterNumberStr = "1"] = filter.split("#", 2);
   const filterNumber = Number(filterNumberStr);
-  const session = await loadPickerSession({
+  const session = loadPickerSession({
     name: filterName,
     number: filterNumber,
   });
@@ -212,12 +212,12 @@ async function startPicker<T extends Detail>(
   stack.defer(() => {
     zindex -= Picker.ZINDEX_ALLOCATION;
   });
-  stack.defer(async () => {
+  stack.defer(() => {
     const name = pickerParams.name;
     if (SESSION_EXCLUDE_SOURCES.includes(name)) {
       return;
     }
-    await savePickerSession({
+    savePickerSession({
       name,
       args,
       context: itemPicker.context,
