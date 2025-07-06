@@ -120,7 +120,7 @@ Deno.test("SortProcessor", async (t) => {
   );
 
   await t.step(
-    "start sort items in-place",
+    "start sorts items without modifying original array (copy-on-write)",
     async () => {
       await using stack = new AsyncDisposableStack();
       stack.defer(async () => {
@@ -133,10 +133,11 @@ Deno.test("SortProcessor", async (t) => {
       const processor = stack.use(
         new SortProcessor([sorter]),
       );
-      const cloned = items.slice();
-      processor.start(denops, { items: cloned });
+      const original = items.slice();
+      processor.start(denops, { items: original });
 
-      assertEquals(cloned, [
+      // Original array should not be modified
+      assertEquals(original, [
         { id: 0, value: "0", detail: {} },
         { id: 1, value: "1", detail: {} },
         { id: 2, value: "2", detail: {} },
@@ -145,7 +146,15 @@ Deno.test("SortProcessor", async (t) => {
       notify.notify();
       await flushPromises();
 
-      assertEquals(cloned, [
+      // Original array should still not be modified
+      assertEquals(original, [
+        { id: 0, value: "0", detail: {} },
+        { id: 1, value: "1", detail: {} },
+        { id: 2, value: "2", detail: {} },
+      ]);
+
+      // Processor should have sorted items
+      assertEquals(processor.items, [
         { id: 2, value: "2", detail: {} },
         { id: 1, value: "1", detail: {} },
         { id: 0, value: "0", detail: {} },

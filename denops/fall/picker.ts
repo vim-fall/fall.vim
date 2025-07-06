@@ -559,13 +559,9 @@ export class Picker<T extends Detail> implements AsyncDisposable {
         this.#sortProcessor.sorterIndex = index;
         this.#listComponent.title = this.#getExtensionIndicator();
         reserve((denops) => {
-          // NOTE:
-          // We need to restart from the matcher processor because
-          // sorters and renderers applies changes in-place thus
-          // the items would be polluted.
-          this.#matchProcessor.start(denops, {
-            items: this.#collectProcessor.items,
-            query: this.#inputComponent.cmdline,
+          // Restart the sort processor with items from the match processor
+          this.#sortProcessor.start(denops, {
+            items: this.#matchProcessor.items,
           });
         });
         break;
@@ -574,13 +570,9 @@ export class Picker<T extends Detail> implements AsyncDisposable {
         this.#sortProcessor.sorterIndex = event.index;
         this.#listComponent.title = this.#getExtensionIndicator();
         reserve((denops) => {
-          // NOTE:
-          // We need to restart from the matcher processor because
-          // sorters and renderers applies changes in-place thus
-          // the items would be polluted.
-          this.#matchProcessor.start(denops, {
-            items: this.#collectProcessor.items,
-            query: this.#inputComponent.cmdline,
+          // Restart the sort processor with items from the match processor
+          this.#sortProcessor.start(denops, {
+            items: this.#matchProcessor.items,
           });
         });
         break;
@@ -596,13 +588,9 @@ export class Picker<T extends Detail> implements AsyncDisposable {
         this.#renderProcessor.rendererIndex = index;
         this.#listComponent.title = this.#getExtensionIndicator();
         reserve((denops) => {
-          // NOTE:
-          // We need to restart from the matcher processor because
-          // sorters and renderers applies changes in-place thus
-          // the items would be polluted.
-          this.#matchProcessor.start(denops, {
-            items: this.#collectProcessor.items,
-            query: this.#inputComponent.cmdline,
+          // Restart the render processor with items from the sort processor
+          this.#renderProcessor.start(denops, {
+            items: this.#sortProcessor.items,
           });
         });
         break;
@@ -611,13 +599,9 @@ export class Picker<T extends Detail> implements AsyncDisposable {
         this.#renderProcessor.rendererIndex = event.index;
         this.#listComponent.title = this.#getExtensionIndicator();
         reserve((denops) => {
-          // NOTE:
-          // We need to restart from the matcher processor because
-          // sorters and renderers applies changes in-place thus
-          // the items would be polluted.
-          this.#matchProcessor.start(denops, {
-            items: this.#collectProcessor.items,
-            query: this.#inputComponent.cmdline,
+          // Restart the render processor with items from the sort processor
+          this.#renderProcessor.start(denops, {
+            items: this.#sortProcessor.items,
           });
         });
         break;
