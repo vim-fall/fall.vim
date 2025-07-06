@@ -7,7 +7,7 @@
   "tasks": {
     "check": "deno check ./**/*.ts",
     "test": "deno test -A --parallel --shuffle --doc",
-    "test:coverage": "deno task test --coverage=.coverage",
+    "test:coverage": "deno test -A --parallel --shuffle --doc --coverage=.coverage --ignore=denops/fall/custom_test.ts",
     "coverage": "deno coverage .coverage --exclude=testdata/",
     "update": "deno run --allow-env --allow-read --allow-write=. --allow-run=git,deno --allow-net=deno.land,jsr.io,registry.npmjs.org jsr:@molt/cli ./**/*.ts",
     "update:write": "deno task -q update --write",
