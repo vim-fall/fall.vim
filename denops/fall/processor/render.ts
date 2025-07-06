@@ -95,6 +95,11 @@ export class RenderProcessor<T extends Detail> implements Disposable {
     this.#cursor = cursor;
   }
 
+  /**
+   * Gets the current scroll offset.
+   *
+   * @returns 0-based offset of the visible window
+   */
   get offset(): number {
     return this.#offset;
   }
@@ -109,10 +114,20 @@ export class RenderProcessor<T extends Detail> implements Disposable {
     );
   }
 
+  /**
+   * Gets the current list height.
+   */
   get height(): number {
     return this.#height;
   }
 
+  /**
+   * Sets the list height.
+   *
+   * Adjusts the offset if necessary to maintain cursor visibility.
+   *
+   * @param height - The new list height
+   */
   set height(height: number) {
     this.#height = height;
     this.#adjustOffset();
@@ -138,6 +153,26 @@ export class RenderProcessor<T extends Detail> implements Disposable {
     }
   }
 
+  /**
+   * Starts the rendering process.
+   *
+   * This method renders items for display, applying the current renderer
+   * to format items with appropriate decorations. Only items within the
+   * visible window are rendered for performance.
+   *
+   * The method emits:
+   * - `render-processor-started`: When rendering begins
+   * - `render-processor-succeeded`: When rendering completes
+   * - `render-processor-failed`: If an error occurs
+   *
+   * @param denops - The Denops instance
+   * @param params - Object containing the items to render
+   *
+   * @example
+   * ```typescript
+   * processor.start(denops, { items: sortedItems });
+   * ```
+   */
   start(
     denops: Denops,
     { items }: { items: readonly Readonly<IdItem<T>>[] },
