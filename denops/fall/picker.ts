@@ -1,3 +1,26 @@
+/**
+ * @module picker
+ *
+ * Core picker implementation for vim-fall.
+ *
+ * This module provides the main `Picker` class which orchestrates the entire fuzzy finding
+ * experience. It manages the lifecycle of a picker session including:
+ *
+ * - User input handling through the input component
+ * - Item collection from sources
+ * - Filtering items through matchers
+ * - Sorting filtered results
+ * - Rendering items in the list component
+ * - Previewing selected items
+ * - Managing user interactions and events
+ *
+ * The picker follows a pipeline architecture where items flow through:
+ * Source -> Collector -> Matcher -> Sorter -> Renderer -> Preview
+ *
+ * Each stage can be customized with different implementations to create
+ * various types of pickers (file finder, grep, buffer list, etc.).
+ */
+
 import type { Denops } from "jsr:@denops/std@^7.3.2";
 import * as opt from "jsr:@denops/std@^7.3.2/option";
 import * as autocmd from "jsr:@denops/std@^7.3.2/autocmd";
@@ -44,52 +67,159 @@ const SORTER_ICON = "🆂 ";
 const RENDERER_ICON = "🆁 ";
 const PREVIEWER_ICON = "🅿 ";
 
+/**
+ * Callback function type for reserved operations that need to be executed
+ * asynchronously during the picker's main loop.
+ */
 type ReservedCallback = (
   denops: Denops,
   options: { signal?: AbortSignal },
 ) => void | Promise<void>;
 
+/**
+ * Configuration parameters for creating a new Picker instance.
+ *
+ * @template T - The type of detail data associated with each item
+ */
 export type PickerParams<T extends Detail> = {
+  /** Unique name identifier for the picker */
   name: string;
+
+  /** Visual theme configuration for the picker UI */
   theme: Theme;
+
+  /** Layout coordinator that manages component positioning */
   coordinator: Coordinator;
+
+  /** Source that provides items to the picker */
   source: Source<T>;
+
+  /** Array of matchers for filtering items (at least one required) */
   matchers: readonly [Matcher<T>, ...Matcher<T>[]];
+
+  /** Optional array of sorters for ordering filtered items */
   sorters?: readonly Sorter<T>[];
+
+  /** Optional array of renderers for displaying items */
   renderers?: readonly Renderer<T>[];
+
+  /** Optional array of previewers for showing item details */
   previewers?: readonly Previewer<T>[];
+
+  /** Z-index for layering picker windows (default: 50) */
   zindex?: number;
+
+  /** Optional context to restore previous picker state */
   context?: PickerContext<T>;
 };
 
+/**
+ * Result returned when a picker session completes.
+ *
+ * @template T - The type of detail data associated with each item
+ */
 export type PickerResult<T extends Detail> = {
+  /** The action name if an action was invoked (e.g., "edit", "split") */
   readonly action?: string;
+
+  /** The final query string entered by the user */
   readonly query: string;
+
+  /** The currently selected item, if any */
   readonly item: Readonly<IdItem<T>> | undefined;
+
+  /** Array of multi-selected items, if any were selected */
   readonly selectedItems: Readonly<IdItem<T>>[] | undefined;
+
+  /** All items that passed the current filter */
   readonly filteredItems: Readonly<IdItem<T>>[];
 };
 
+/**
+ * Optional configuration for Picker behavior.
+ */
 export type PickerOptions = {
+  /** Interval in milliseconds for the scheduler loop (default: 10) */
   schedulerInterval?: number;
   previewDebounceDelay?: number;
 };
 
+/**
+ * Context state of a picker that can be saved and restored.
+ * Useful for implementing picker resume functionality.
+ *
+ * @template T - The type of detail data associated with each item
+ */
 export type PickerContext<T extends Detail> = {
+  /** The current query string */
   readonly query: string;
+
+  /** Set of selected item IDs */
   readonly selection: Set<unknown>;
+
+  /** All collected items from the source */
   readonly collectedItems: readonly IdItem<T>[];
+
+  /** Items that passed the current filter */
   readonly filteredItems: readonly IdItem<T>[];
+
+  /** Current cursor position in the list */
   readonly cursor: number;
+
+  /** Current scroll offset in the list */
   readonly offset: number;
+
+  /** Index of the active matcher */
   readonly matcherIndex: number;
+
+  /** Index of the active sorter */
   readonly sorterIndex: number;
+
+  /** Index of the active renderer */
   readonly rendererIndex: number;
+
+  /** Index of the active previewer (if any) */
   readonly previewerIndex?: number;
 };
 
+/**
+ * Main Picker class that orchestrates the fuzzy finding experience.
+ *
+ * The Picker manages the entire lifecycle of a fuzzy finding session, including:
+ * - Creating and managing UI components (input, list, preview, help)
+ * - Processing items through the collection -> match -> sort -> render pipeline
+ * - Handling user interactions and keyboard events
+ * - Managing component layout and resizing
+ *
+ * @template T - The type of detail data associated with each item
+ *
+ * @example
+ * ```typescript
+ * // Create a file picker
+ * const picker = new Picker({
+ *   name: "files",
+ *   theme: MODERN_THEME,
+ *   coordinator: modern(),
+ *   source: file(),
+ *   matchers: [fzf()],
+ *   sorters: [alphabetical()],
+ *   renderers: [nerdfont()],
+ *   previewers: [file()],
+ * });
+ *
+ * // Open and start the picker
+ * await using _ = await picker.open(denops, { signal });
+ * const result = await picker.start(denops, { args: [] });
+ *
+ * if (result?.item) {
+ *   console.log("Selected:", result.item.value);
+ * }
+ * ```
+ */
 export class Picker<T extends Detail> implements AsyncDisposable {
+  /** Number of z-index levels allocated for picker components */
   static readonly ZINDEX_ALLOCATION = 4;
+
   readonly #stack = new AsyncDisposableStack();
   readonly #schedulerInterval: number;
   readonly #previewDebounceDelay: number;
@@ -112,6 +242,12 @@ export class Picker<T extends Detail> implements AsyncDisposable {
   readonly #previewerIcon: string;
   #selection: Set<unknown>;
 
+  /**
+   * Creates a new Picker instance.
+   *
+   * @param params - Configuration parameters for the picker
+   * @param options - Optional behavior configuration
+   */
   constructor(params: PickerParams<T>, options: PickerOptions = {}) {
     this.#schedulerInterval = options.schedulerInterval ?? SCHEDULER_INTERVAL;
     this.#previewDebounceDelay = options.previewDebounceDelay ??
@@ -198,6 +334,14 @@ export class Picker<T extends Detail> implements AsyncDisposable {
     );
   }
 
+  /**
+   * Gets the current context state of the picker.
+   *
+   * This context can be used to save and restore the picker state,
+   * enabling features like picker resume.
+   *
+   * @returns The current picker context
+   */
   get context(): PickerContext<T> {
     return {
       query: this.#inputComponent.cmdline,
@@ -239,6 +383,27 @@ export class Picker<T extends Detail> implements AsyncDisposable {
     return `${mi} ${si} ${ri} ${pi}`.trim();
   }
 
+  /**
+   * Opens the picker UI components and prepares them for interaction.
+   *
+   * This method:
+   * - Creates and positions all UI windows (input, list, preview)
+   * - Sets up window resize handlers
+   * - Emits picker enter/leave events
+   *
+   * The returned AsyncDisposable should be used with `await using` to ensure
+   * proper cleanup when the picker closes.
+   *
+   * @param denops - The Denops instance
+   * @param options - Options including an optional AbortSignal
+   * @returns An AsyncDisposable for cleanup
+   *
+   * @example
+   * ```typescript
+   * await using _ = await picker.open(denops, { signal });
+   * // Picker is now open and ready for use
+   * ```
+   */
   async open(
     denops: Denops,
     { signal }: { signal?: AbortSignal },
@@ -338,6 +503,29 @@ export class Picker<T extends Detail> implements AsyncDisposable {
     return stack.move();
   }
 
+  /**
+   * Starts the picker interaction loop.
+   *
+   * This method:
+   * - Begins collecting items from the source
+   * - Starts the main event loop to handle user input
+   * - Processes items through the pipeline (match, sort, render)
+   * - Returns when the user accepts or cancels
+   *
+   * @param denops - The Denops instance
+   * @param params - Parameters including source arguments
+   * @param options - Options including an optional AbortSignal
+   * @returns The picker result if accepted, undefined if cancelled
+   *
+   * @example
+   * ```typescript
+   * const result = await picker.start(denops, { args: ["--hidden"] });
+   * if (result) {
+   *   console.log("Selected:", result.item?.value);
+   *   console.log("Action:", result.action);
+   * }
+   * ```
+   */
   async start(
     denops: Denops,
     { args }: { args: readonly string[] },
@@ -426,6 +614,12 @@ export class Picker<T extends Detail> implements AsyncDisposable {
     };
   }
 
+  /**
+   * Handles item selection at the specified cursor position.
+   *
+   * @param cursor - The cursor position or "$" for last item
+   * @param method - Selection method: "on" to select, "off" to deselect, "toggle" to toggle
+   */
   #select(
     cursor?: number | "$",
     method: "on" | "off" | "toggle" = "toggle",
@@ -459,6 +653,11 @@ export class Picker<T extends Detail> implements AsyncDisposable {
     }
   }
 
+  /**
+   * Handles selection of all filtered items.
+   *
+   * @param method - Selection method: "on" to select all, "off" to deselect all, "toggle" to toggle all
+   */
   #selectAll(
     method: "on" | "off" | "toggle" = "toggle",
   ): void {
@@ -485,6 +684,20 @@ export class Picker<T extends Detail> implements AsyncDisposable {
     }
   }
 
+  /**
+   * Central event handler for all picker events.
+   *
+   * This method processes events from:
+   * - User input (keyboard/commands)
+   * - Component updates
+   * - Processor state changes
+   *
+   * Events may trigger immediate actions or reserve callbacks for
+   * asynchronous processing in the next scheduler tick.
+   *
+   * @param event - The event to handle
+   * @param handlers - Accept and reserve callback handlers
+   */
   #handleEvent(event: Event, { accept, reserve, reservePreviewDebounced }: {
     accept: (name: string) => Promise<void>;
     reserve: (callback: ReservedCallback) => void;
@@ -808,11 +1021,23 @@ export class Picker<T extends Detail> implements AsyncDisposable {
     }
   }
 
+  /**
+   * Async disposal method for cleaning up picker resources.
+   *
+   * This is called automatically when using `await using` syntax.
+   * It ensures all components and processors are properly disposed.
+   */
   [Symbol.asyncDispose]() {
     return this.#stack[Symbol.asyncDispose]();
   }
 }
 
+/**
+ * Gets the current screen size from Vim.
+ *
+ * @param denops - The Denops instance
+ * @returns The screen dimensions
+ */
 async function getScreenSize(denops: Denops): Promise<Size> {
   const [width, height] = await collect(denops, (denops) => [
     opt.columns.get(denops),
