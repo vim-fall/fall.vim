@@ -1,4 +1,5 @@
 .tool-versions
 .coverage
 .deps
+.worktrees
 deno.lock
