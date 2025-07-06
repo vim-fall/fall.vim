@@ -1,3 +1,20 @@
+/**
+ * @module component/list
+ *
+ * List component for the vim-fall picker UI.
+ *
+ * This module provides the ListComponent class which manages the main list area
+ * of the picker where filtered and rendered items are displayed. It handles:
+ *
+ * - Rendering items with syntax highlighting
+ * - Managing item selection with visual indicators
+ * - Executing commands on the list buffer
+ * - Handling decorations for match highlighting
+ *
+ * The list component works closely with the render processor to display
+ * items in a scrollable, interactive list format.
+ */
+
 import type { Denops } from "jsr:@denops/std@^7.3.2";
 import type { Decoration } from "jsr:@denops/std@^7.3.2/buffer";
 import { batch } from "jsr:@denops/std@^7.3.2/batch";
