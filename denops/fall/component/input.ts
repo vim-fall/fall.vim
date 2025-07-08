@@ -1,3 +1,13 @@
+/**
+ * @module component/input
+ *
+ * Input component for the vim-fall picker UI.
+ *
+ * This module provides the InputComponent class which manages the user input area
+ * of the picker. It displays the current query, cursor position, collection/processing
+ * status, and provides visual feedback through spinners and status indicators.
+ */
+
 import type { Denops } from "jsr:@denops/std@^7.3.2";
 import * as fn from "jsr:@denops/std@^7.3.2/function";
 import * as buffer from "jsr:@denops/std@^7.3.2/buffer";

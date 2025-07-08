@@ -16,11 +16,30 @@ colorscheme)</sup>
 
 </div>
 
-Fall is a fuzzy finder for Vim and Neovim, implemented in [Denops], and stands
-for **"Filter All."**
+Fall is a powerful, flexible fuzzy finder framework for Vim and Neovim,
+implemented in [Denops], and stands for **"Filter All."** It provides an
+extensible architecture that allows users to search, filter, and act on various
+data sources including files, buffers, lines, help tags, and more through a
+unified interface.
+
+## Key Features
+
+- **Extensible Architecture**: Modular design allows custom sources, matchers,
+  sorters, renderers, and previewers
+- **Interactive Interface**: Quick help via F1, real-time filtering, and action
+  selection
+- **Multiple Processing Stages**: Sophisticated pipeline with collection,
+  matching, sorting, rendering, and preview stages
+- **Session Management**: Save and resume picker sessions with `:FallSession`
+  and `:FallResume`
+- **Submatch Capabilities**: Refine searches with multiple filter criteria
+- **Performance Optimized**: Asynchronous processing with intelligent scheduling
+  and chunking
+- **Rich Customization**: Configure behavior through TypeScript extensions and
+  Vim script settings
 
 See [Features](https://github.com/vim-fall/fall.vim/wiki/Features) for more
-information about Fall's features.
+detailed information.
 
 > [!WARNING]
 >
@@ -62,16 +81,44 @@ following arguments:
 Fall {source} {source_args}...
 ```
 
-For example, if you'd like to use the `file` source, you can use the following:
+### Common Examples
 
-```
-Fall file
-```
+```vim
+" Find files in current directory
+:Fall file
 
-Or use the `line` source with `README.md` as an argument:
+" Find files in specific directory
+:Fall file /path/to/directory
 
-```
-Fall line README.md
+" Search file contents with grep
+:Fall grep
+
+" Search in git repository
+:Fall git-grep
+
+" Search with ripgrep (faster)
+:Fall rg
+
+" Filter lines in current buffer
+:Fall line
+
+" Filter lines in specific file
+:Fall line README.md
+
+" Switch between buffers
+:Fall buffer
+
+" Browse help tags
+:Fall help
+
+" Browse command history
+:Fall history
+
+" Resume previous picker
+:FallResume
+
+" Manage picker sessions
+:FallSession
 ```
 
 ### Mappings
@@ -103,14 +150,28 @@ Visit the
 [Customization](https://github.com/vim-fall/fall.vim/wiki/Customization) page on
 the GitHub Wiki for more information.
 
+## Architecture
+
+Fall follows a modular architecture with these core components:
+
+- **Sources**: Data providers (files, buffers, grep results, etc.)
+- **Matchers**: Filter algorithms (fuzzy, substring, regex)
+- **Sorters**: Result ordering strategies (alphabetical, length, score)
+- **Renderers**: Display formatters (with optional NerdFont icons)
+- **Previewers**: Content preview generators
+- **Actions**: Operations on selected items (open, edit, split, etc.)
+
+Components communicate through a well-defined pipeline, allowing for extensive
+customization and extension.
+
 ## Related Projects
 
-| Repository                                                                | Package                                               | Description                                      |
-| ------------------------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------ |
-| [vim-fall/deno-fall-core](https://github.com/vim-fall/deno-fall-core)     | [`@vim-fall/core`](https://jsr.io/@vim-fall/core)     | Core types for Fall. Not meant for external use. |
-| [vim-fall/deno-fall-custom](https://github.com/vim-fall/deno-fall-custom) | [`@vim-fall/custom`](https://jsr.io/@vim-fall/custom) | Library to customize Fall.                       |
-| [vim-fall/deno-fall-std](https://github.com/vim-fall/deno-fall-std)       | [`@vim-fall/std`](https://jsr.io/@vim-fall/std)       | Standard library for using Fall.                 |
-| [vim-fall/deno-fall-extra](https://github.com/vim-fall/deno-fall-extra)   | [`@vim-fall/extra`](https://jsr.io/@vim-fall/extra)   | Extra library for using Fall.                    |
+| Repository                                                                | Package                                               | Description                                   |
+| ------------------------------------------------------------------------- | ----------------------------------------------------- | --------------------------------------------- |
+| [vim-fall/deno-fall-core](https://github.com/vim-fall/deno-fall-core)     | [`@vim-fall/core`](https://jsr.io/@vim-fall/core)     | Core types and interfaces for Fall extensions |
+| [vim-fall/deno-fall-custom](https://github.com/vim-fall/deno-fall-custom) | [`@vim-fall/custom`](https://jsr.io/@vim-fall/custom) | Customization utilities and helpers           |
+| [vim-fall/deno-fall-std](https://github.com/vim-fall/deno-fall-std)       | [`@vim-fall/std`](https://jsr.io/@vim-fall/std)       | Standard built-in components                  |
+| [vim-fall/deno-fall-extra](https://github.com/vim-fall/deno-fall-extra)   | [`@vim-fall/extra`](https://jsr.io/@vim-fall/extra)   | Additional sources and extensions             |
 
 ## Similar Projects
 

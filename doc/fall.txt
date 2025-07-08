@@ -17,15 +17,21 @@ MODULE					|fall-module|
 =============================================================================
 INTRODUCTION					*fall-introduction*
 
-Fall (*fall.vim*) is a flexible Fuzzy Finder for Vim/Neovim.
+Fall (*fall.vim*) is a powerful, flexible fuzzy finder framework for Vim and
+Neovim. The name stands for "Filter All" and it provides an extensible
+architecture that allows users to search, filter, and act on various data
+sources through a unified interface.
 
 Key features include:
 
-	- Quick help via <F1> key.
-	- Support for multiple matchers, sorters, renderers, and previewers.
-	- Submatch capabilities for refined filtering.
-	- Action selector for invoking various actions.
-	- Extensible through TypeScript customization.
+	- Extensible architecture with modular components
+	- Quick help via <F1> key
+	- Support for multiple matchers, sorters, renderers, and previewers
+	- Submatch capabilities for refined filtering
+	- Action selector for invoking various actions
+	- Session management for resuming previous searches
+	- Asynchronous processing with performance optimization
+	- Rich customization through TypeScript and Vim script
 
 =============================================================================
 REQUIREMENTS					*fall-requirements*
@@ -70,57 +76,93 @@ Sources are defined in "custom.ts" via |:FallCustom|. In default "custom.ts",
 the following sources are defined:
 
 Name		Description~
-"grep"		Filter files by its content using grep.
-"git-grep"	Filter files by its content using git-grep.
-"rg"		Filter files by its content using ripgrep (rg).
-"file"		Filter files in the directory.
-"file:all"	Filter files in the directory without static filters.
-"line"		Filter lines in the buffer.
-"buffer"	Filter buffers.
-"help"		Filter help tags.
-"quickfix"	Filter |quickfix| list.
-"oldfiles"	Filter |:oldfiles|.
-"history"	Filter command history.
+"grep"		Filter files by content using grep command
+"git-grep"	Filter files by content using git-grep (git repositories only)
+"rg"		Filter files by content using ripgrep (faster alternative)
+"file"		Filter files in the directory (respects gitignore)
+"file:all"	Filter all files in the directory (includes hidden/ignored)
+"line"		Filter lines in the current buffer or specified file
+"buffer"	Filter and switch between open buffers
+"help"		Filter and browse Vim help tags
+"quickfix"	Filter items in the |quickfix| list
+"oldfiles"	Filter recently edited files from |:oldfiles|
+"history"	Filter and execute from command history
+
+Each source can accept additional arguments. For example:
+>
+	" Search in a specific directory
+	:Fall file ~/projects
+	
+	" Search specific file types with ripgrep
+	:Fall rg --type=python
+	
+	" Filter lines in a specific file
+	:Fall line /path/to/file.txt
+<
 
 Users can define additional sources in "custom.ts" to suit their needs. See
 |fall-customization| for customization details.
 
-Within the picker window, the following default mappings are applied. Note 
-that these may vary based on configuration, and can be confirmed via the <F1>
-help prompt.
+Within the picker window, the following default mappings are applied. These
+can be confirmed via the <F1> help prompt.
 
+Navigation~
 Key		Description~
-<C-t>		Move cursor to the first item.
-<C-g>		Move cursor to the last item.
-<C-p>		Move cursor to the previous item.
-<C-n>		Move cursor to the next item.
-<C-u>		Scroll up by 'scroll' lines.
-<C-d>		Scroll down by 'scroll' lines.
-<PageUp>	Scroll list content left.
-<PageDown>	Scroll list content right.
-<S-PageUp>	Scroll left by 'scroll' lines.
-<S-PageDown>	Scroll right by 'scroll' lines.
-<C-,>		Select the current item.
-<C-.>		Select all items.
-<C-j>		Select the current item and move to the next item.
-<C-k>		Move to the previous item and select it.
-<M-Home>	Move cursor to the first line of preview.
-<M-End>		Move cursor to the last line of preview.
-<M-Up>		Move cursor to the previous line of preview.
-<M-Down>	Move cursor to the next line of preview.
-<M-Left>	Scroll preview left.
-<M-Right>	Scroll preview right.
-<S-Left>	Scroll preview left by 'scroll' lines.
-<S-Right>	Scroll preview right by 'scroll' lines.
-<Tab>		Open the action selector.
-<F1>		Open or close help window.
-<F2>		Switch to the next matcher.
-<F3>		Switch to the next sorter.
-<F4>		Switch to the next renderer.
-<F5>		Switch to the next previewer.
+<C-t>		Move cursor to the first item
+<C-g>		Move cursor to the last item
+<C-p>		Move cursor to the previous item
+<C-n>		Move cursor to the next item
+<C-u>		Scroll up by 'scroll' lines
+<C-d>		Scroll down by 'scroll' lines
+<PageUp>	Scroll list content left
+<PageDown>	Scroll list content right
+<S-PageUp>	Scroll left by 'scroll' lines
+<S-PageDown>	Scroll right by 'scroll' lines
+
+Selection~
+Key		Description~
+<C-,>		Toggle selection of the current item
+<C-.>		Select all visible items
+<C-j>		Select current item and move to next
+<C-k>		Move to previous item and select it
+
+Preview Navigation~
+Key		Description~
+<M-Home>	Move to the first line of preview
+<M-End>		Move to the last line of preview
+<M-Up>		Move to the previous line of preview
+<M-Down>	Move to the next line of preview
+<M-Left>	Scroll preview left
+<M-Right>	Scroll preview right
+<S-Left>	Scroll preview left by 'scroll' lines
+<S-Right>	Scroll preview right by 'scroll' lines
+
+Actions and Modes~
+Key		Description~
+<CR>		Execute default action on selected item(s)
+<Tab>		Open the action selector
+<F1>		Toggle help window
+<F2>		Cycle through available matchers
+<F3>		Cycle through available sorters
+<F4>		Cycle through available renderers
+<F5>		Cycle through available previewers
 
 Uses can define additional mappings via |FallPickerEnter| autocmd. See
 |fall-configuration| for details.
+
+Session Management~
+
+Fall provides session management commands to save and resume picker states:
+
+						*:FallSession*
+:FallSession	Open the session manager to view and resume saved
+		sessions. Sessions preserve the picker state including
+		query, selections, and cursor position.
+
+						*:FallResume*
+:FallResume [{name}]
+		Resume the last picker session or a specific named session.
+		If {name} is provided, resume that specific session.
 
 =============================================================================
 CONFIGURATION					*fall-configuration*
@@ -730,63 +772,211 @@ Example usage:
 Preview filetype is determined by the previewer; use |FallPreviewRendered|.
 
 =============================================================================
+ARCHITECTURE					*fall-architecture*
+
+Fall employs a modular pipeline architecture where data flows through distinct
+processing stages. Each stage is handled by specialized components that can be
+independently customized or replaced.
+
+Processing Pipeline~
+>
+	Source -> Collector -> Matcher -> Sorter -> Renderer -> Display
+	                                              |
+	                                              v
+	                                          Previewer
+<
+The pipeline operates asynchronously with intelligent scheduling to maintain
+responsive user interaction while processing large datasets.
+
+Component Communication~
+
+Components communicate through well-defined interfaces using TypeScript types
+from the @vim-fall/core package. This ensures type safety and enables
+third-party extensions.
+
+Performance Optimizations~
+
+- Incremental processing: Only changed data is reprocessed
+- Chunked operations: Large datasets are processed in chunks
+- Debounced input: User input is debounced to reduce processing
+- Lazy evaluation: Preview generation only occurs for visible items
+
+=============================================================================
 MODULE						*fall-module*
 
-Fall decomposes the functionality of a Fuzzy Finder into the following
-modules:
+Fall decomposes fuzzy finder functionality into the following modular
+components. Each module type can have multiple implementations that users
+can switch between or customize.
 
 						*fall-module-coordinator*
 Coordinator~
-	A module that determines the style and layout of the picker. Opens
-	the picker window.
+	Manages the overall layout and window positioning of the picker
+	interface. Coordinators determine how the input, list, and preview
+	components are arranged on screen.
+	
+	Built-in coordinators:
+	- modern: Floating windows with customizable dimensions
+	- compact: Compact layout with minimal spacing
+	- separate: Separate windows for each component
 
 						*fall-module-theme*
 Theme~
-	A theme structure used to define the style of the picker. It is passed
-	to the |fall-module-coordinator|.
+	Defines visual styling including borders, colors, and icons. Themes
+	work with coordinators to create cohesive visual experiences.
+	
+	Built-in themes:
+	- MODERN_THEME: Clean, modern appearance with rounded borders
+	- ASCII_THEME: ASCII art style borders
+	- DOUBLE_THEME: Double-line borders
+	- SINGLE_THEME: Single-line borders
 
 						*fall-module-source*
 Source~
-	Retrieves data from arbitrary sources and generates an
-	"AsyncIterableIterator" of items. This module is applied to the
-	internal collect processor.
+	Provides data from various sources like files, buffers, or external
+	commands. Sources generate items asynchronously, allowing Fall to
+	handle large datasets efficiently.
+	
+	Interface: Returns AsyncIterableIterator<Item>
+	Examples: file, buffer, line, grep, git-grep, rg
 
 						*fall-module-matcher*
 Matcher~
-	Filters the items received from the |fall-module-source| based on user
-	input and generates an "AsyncIterableIterator" of filtered items. It
-	is applied to the internal match processor.
+	Filters items based on user input using various algorithms. Matchers
+	can be incremental (reusing previous results) or non-incremental.
+	
+	Interface: (items, query) -> AsyncIterableIterator<MatchedItem>
+	Examples: fzf (fuzzy matching)
 
 						*fall-module-curator*
 Curator~
-	Combines |fall-module-source| and |fall-module-matcher|, performing
-	data retrieval and filtering based on user input. Mainly used for
-	live-grep like feature. It is transformed into |fall-module-source|
-	with |fall-module-matcher| internally.
+	A specialized component that combines source and matcher functionality
+	for scenarios where filtering happens at the source level (e.g.,
+	live-grep). This enables more efficient processing by filtering
+	data before it enters the pipeline.
+	
+	Use cases: Live grep, database queries, API searches
 
 						*fall-module-sorter*
 Sorter~
-	Sorts items in-place received from the |fall-module-matcher| or
-	|fall-module-curator|. It is applied to the internal sort processor.
+	Orders filtered items using various strategies. Multiple sorters
+	can be chained to create complex sorting behaviors.
+	
+	Interface: (items) -> void (sorts in-place)
+	Examples: noop (no sorting), lexical (alphabetical)
 
 						*fall-module-renderer*
 Renderer~
-	Processes sorted items in-place from the |fall-module-sorter| for user
-	display. It is applied to the internal render processor.
+	Transforms items into displayable format with syntax highlighting,
+	icons, and formatting. Renderers can add visual enhancements without
+	modifying the underlying data.
+	
+	Interface: (items) -> void (modifies display properties)
+	Examples: nerdfont (adds icons), smartPath (intelligent path display)
 
 						*fall-module-previewer*
 Previewer~
-	Generates content for previewing the currently selected item. It is
-	applied to the internal preview processor.
+	Generates preview content for the currently selected item. Previewers
+	can display file contents, documentation, or any relevant information.
+	
+	Interface: (item) -> PreviewContent
+	Examples: file (with syntax highlighting), buffer, helptag
 
 						*fall-module-action*
 Action~
-	Executes actions on the selected target item.
+	Defines operations that can be performed on selected items. Actions
+	are invoked through the action selector or default key bindings.
+	
+	Interface: (denops, { selectedItems, item }) -> Promise<void>
+	Examples: open, edit, split, vsplit, tabedit, cd, yank
 
 						*fall-module-refiner*
 Refiner~
-	Applies to |fall-module-source| or |fall-module-curator| to refine and
-	process generated items.
+	Post-processes items from sources or curators to add metadata,
+	transform data, or filter results. Refiners enable source composition
+	and data enrichment.
+	
+	Use cases: Adding file stats, filtering by type, data transformation
 
+=============================================================================
+TROUBLESHOOTING					*fall-troubleshooting*
+
+Common Issues~
+
+1. Icons not displaying correctly
+   - Ensure your terminal uses a Nerd Font
+   - Disable nerdfont renderer in custom.ts if Nerd Fonts unavailable
+   - Check terminal encoding (should be UTF-8)
+
+2. Picker not opening or crashing
+   - Verify Deno 2.x is installed: `:echo denops#server#status()`
+   - Check Denops server: `:DenopsHealth`
+   - Review error messages: `:messages`
+
+3. Slow performance
+   - Use ripgrep (rg) instead of grep for file content search
+   - Limit search scope with more specific paths
+   - Adjust chunk size in custom configuration
+   - Disable preview for large files
+
+4. Custom source not working
+   - Ensure source returns proper item structure
+   - Check Deno console for runtime errors
+   - Review TypeScript syntax errors in the editor
+
+5. Key mappings not working
+   - Confirm no conflicts: `:verbose cmap <key>`
+   - Check if inside picker window during mapping
+   - Verify autocmd is triggered: `:autocmd User FallPickerEnter`
+
+Debugging~
+
+Enable verbose logging:
+>vim
+	let g:denops#debug = 1
+<
+View Denops server output:
+>vim
+	:DenopsServer
+<
+=============================================================================
+EXAMPLES					*fall-examples*
+
+Quick Start Configuration~
+>vim
+	" Basic key mappings
+	nnoremap <leader>ff :Fall file<CR>
+	nnoremap <leader>fg :Fall grep<CR>
+	nnoremap <leader>fb :Fall buffer<CR>
+	nnoremap <leader>fh :Fall help<CR>
+	nnoremap <leader>fr :FallResume<CR>
+<
+Custom Source Example~
+>typescript
+	// In custom.ts
+	import { defineSource } from "jsr:@vim-fall/std/source";
+	
+	const mySource = defineSource(async function* () {
+	  yield { id: 1, value: "Item 1", detail: {} };
+	  yield { id: 2, value: "Item 2", detail: {} };
+	});
+	
+	definePickerFromSource("mysource", mySource, {
+	  matchers: [fzf()],
+	  actions: { open: builtin.action.echo },
+	  defaultAction: "open",
+	});
+<
+Integration with vim-qfreplace~
+>vim
+	function! s:fall_qfreplace() abort
+	  " Send grep results to quickfix
+	  cnoremap <nowait> <C-q> <Cmd>call fall#action('quickfix')<CR>
+	endfunction
+	
+	augroup fall_qfreplace
+	  autocmd!
+	  autocmd User FallPickerEnter:grep,git-grep,rg call s:fall_qfreplace()
+	augroup END
+<
 =============================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl

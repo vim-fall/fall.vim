@@ -1,3 +1,21 @@
+/**
+ * @module processor/match
+ *
+ * Matching processor for vim-fall.
+ *
+ * This module provides the MatchProcessor class which filters items based on
+ * user queries using configurable matchers. It supports:
+ *
+ * - Multiple matcher implementations (fuzzy, substring, regex, etc.)
+ * - Incremental matching for performance optimization
+ * - Asynchronous processing with chunking
+ * - Query caching to avoid redundant processing
+ * - Matcher switching during runtime
+ *
+ * The processor transforms collected items into filtered items that match
+ * the current query, emitting events to coordinate with other components.
+ */
+
 import type { Denops } from "jsr:@denops/std@^7.3.2";
 import { delay } from "jsr:@std/async@^1.0.0/delay";
 import { take } from "jsr:@core/iterutil@^0.9.0/async/take";
@@ -8,22 +26,75 @@ import { Chunker } from "../lib/chunker.ts";
 import { ItemBelt } from "../lib/item_belt.ts";
 import { dispatch } from "../event.ts";
 
+/** Default delay interval between processing cycles */
 const INTERVAL = 0;
+
+/** Default maximum number of items to process */
 const THRESHOLD = 100000;
+
+/** Default number of items to process in each chunk */
 const CHUNK_SIZE = 1000;
+
+/** Default interval in milliseconds between chunk updates */
 const CHUNK_INTERVAL = 100;
 
+/**
+ * Configuration options for the MatchProcessor.
+ *
+ * @template T - The type of detail data associated with each item
+ */
 export type MatchProcessorOptions<T extends Detail> = {
+  /** Initial filtered items (useful for resume) */
   initialItems?: readonly IdItem<T>[];
+
+  /** Initial query string */
   initialQuery?: string;
+
+  /** Initial matcher index */
   initialIndex?: number;
+
+  /** Delay between processing cycles in ms (default: 0) */
   interval?: number;
+
+  /** Maximum items to process (default: 100000) */
   threshold?: number;
+
+  /** Items per chunk (default: 1000) */
   chunkSize?: number;
+
+  /** Max time between chunk updates in ms (default: 100) */
   chunkInterval?: number;
+
+  /** Enable incremental matching mode for better performance */
   incremental?: boolean;
 };
 
+/**
+ * Processor responsible for filtering items based on user queries.
+ *
+ * The MatchProcessor applies matchers to filter collected items according to
+ * the current query. It supports multiple matchers that can be switched
+ * dynamically, and provides both standard and incremental matching modes.
+ *
+ * @template T - The type of detail data associated with each item
+ *
+ * @example
+ * ```typescript
+ * const processor = new MatchProcessor([fzf(), substring()], {
+ *   incremental: true,
+ *   chunkSize: 500,
+ * });
+ *
+ * // Start matching
+ * processor.start(denops, {
+ *   items: collectedItems,
+ *   query: "search term",
+ * });
+ *
+ * // Switch matcher
+ * processor.matcherIndex = 1;
+ * ```
+ */
 export class MatchProcessor<T extends Detail> implements Disposable {
   readonly matchers: ItemBelt<Matcher<T>>;
   readonly #interval: number;
@@ -57,18 +128,34 @@ export class MatchProcessor<T extends Detail> implements Disposable {
     return this.matchers.current!;
   }
 
+  /**
+   * Gets the currently filtered items.
+   *
+   * @returns Array of items that match the current query
+   */
   get items(): IdItem<T>[] {
     return this.#items;
   }
 
+  /**
+   * Gets the total number of available matchers.
+   */
   get matcherCount(): number {
     return this.matchers.count;
   }
 
+  /**
+   * Gets the current matcher index.
+   */
   get matcherIndex(): number {
     return this.matchers.index;
   }
 
+  /**
+   * Sets the current matcher index.
+   *
+   * @param index - The matcher index or "$" for the last matcher
+   */
   set matcherIndex(index: number | "$") {
     if (index === "$") {
       index = this.matchers.count;
@@ -87,6 +174,34 @@ export class MatchProcessor<T extends Detail> implements Disposable {
     }
   }
 
+  /**
+   * Starts the matching process.
+   *
+   * This method filters the provided items based on the query using the
+   * current matcher. It handles:
+   * - Query caching to avoid redundant processing
+   * - Incremental matching when enabled
+   * - Asynchronous processing with progress updates
+   *
+   * The method emits:
+   * - `match-processor-started`: When matching begins
+   * - `match-processor-updated`: When new matches are found
+   * - `match-processor-succeeded`: When matching completes
+   * - `match-processor-failed`: If an error occurs
+   *
+   * @param denops - The Denops instance
+   * @param params - Items to filter and the query string
+   * @param options - Optional configuration
+   * @param options.restart - Force restart even if processing
+   *
+   * @example
+   * ```typescript
+   * processor.start(denops, {
+   *   items: collectedItems,
+   *   query: "search term",
+   * });
+   * ```
+   */
   start(
     denops: Denops,
     { items, query }: MatchParams<T>,
@@ -158,6 +273,12 @@ export class MatchProcessor<T extends Detail> implements Disposable {
       });
   }
 
+  /**
+   * Disposes of the processor and cancels any ongoing matching.
+   *
+   * This method is called automatically when the processor is no longer needed.
+   * It aborts the matching process and cleans up resources.
+   */
   [Symbol.dispose](): void {
     try {
       this.#controller.abort(null);

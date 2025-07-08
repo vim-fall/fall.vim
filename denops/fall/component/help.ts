@@ -1,3 +1,20 @@
+/**
+ * @module component/help
+ *
+ * Help component for the vim-fall picker UI.
+ *
+ * This module provides the HelpComponent class which displays interactive help
+ * information to users. It supports:
+ *
+ * - Multi-page help content with navigation
+ * - Syntax highlighting through decorations
+ * - Dynamic content generation based on current mappings
+ * - Toggle visibility with F1 key
+ *
+ * The help component provides contextual assistance, showing available
+ * keyboard shortcuts and commands for the current picker.
+ */
+
 import type { Denops } from "jsr:@denops/std@^7.3.2";
 import type { Decoration } from "jsr:@denops/std@^7.3.2/buffer";
 import * as mapping from "jsr:@denops/std@^7.3.2/mapping";

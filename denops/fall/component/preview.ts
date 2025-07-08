@@ -1,3 +1,20 @@
+/**
+ * @module component/preview
+ *
+ * Preview component for the vim-fall picker UI.
+ *
+ * This module provides the PreviewComponent class which displays previews of
+ * selected items in the picker. It supports:
+ *
+ * - Content preview with optional syntax highlighting
+ * - Cursor positioning at specific lines/columns
+ * - File type detection for proper highlighting
+ * - Command execution within the preview context
+ *
+ * The preview component enhances the user experience by showing item details
+ * before selection, making it easier to identify the desired item.
+ */
+
 import type { Denops } from "jsr:@denops/std@^7.3.2";
 import * as fn from "jsr:@denops/std@^7.3.2/function";
 import * as buffer from "jsr:@denops/std@^7.3.2/buffer";

@@ -1,3 +1,22 @@
+/**
+ * @module custom
+ *
+ * Custom configuration management for vim-fall.
+ *
+ * This module handles loading, managing, and reloading user customizations
+ * for vim-fall. It provides APIs for:
+ *
+ * - Loading user custom configuration files
+ * - Managing global settings (theme, coordinator)
+ * - Registering custom pickers
+ * - Configuring action pickers
+ * - Editing and reloading configurations
+ *
+ * The custom system allows users to define their own pickers, customize
+ * existing ones, and configure the overall appearance and behavior of
+ * vim-fall through a TypeScript configuration file.
+ */
+
 import type { Denops } from "jsr:@denops/std@^7.3.2";
 import * as buffer from "jsr:@denops/std@^7.3.2/buffer";
 import * as vars from "jsr:@denops/std@^7.3.2/variable";
@@ -53,7 +72,22 @@ let actionPickerParams = { ...defaultActionPickerParams };
 const pickerParamsMap = new Map<string, PickerParams>();
 
 /**
- * Edit user custom
+ * Opens the user custom configuration file for editing.
+ *
+ * This function:
+ * - Creates the custom file from a template if it doesn't exist
+ * - Opens the file in a new buffer
+ * - Sets up auto-reload on save
+ *
+ * @param denops - The Denops instance
+ * @param options - Buffer open options (split, vsplit, etc.)
+ * @returns A promise that resolves when the file is opened
+ *
+ * @example
+ * ```typescript
+ * // Open custom file in a vertical split
+ * await editUserCustom(denops, { mods: "vertical" });
+ * ```
  */
 export async function editUserCustom(
   denops: Denops,
@@ -86,7 +120,28 @@ export async function editUserCustom(
 }
 
 /**
- * Load user custom from the g:fall_config_path.
+ * Loads the user custom configuration from the path specified in g:fall_custom_path.
+ *
+ * This function:
+ * - Loads the custom TypeScript module
+ * - Executes its main function with the configuration context
+ * - Falls back to default configuration on error
+ * - Emits User:FallCustomLoaded autocmd on success
+ *
+ * @param denops - The Denops instance
+ * @param options - Loading options
+ * @param options.reload - Force reload even if already loaded
+ * @param options.verbose - Show loading messages
+ * @returns A promise that resolves when loading is complete
+ *
+ * @example
+ * ```typescript
+ * // Initial load
+ * await loadUserCustom(denops);
+ *
+ * // Force reload with verbose output
+ * await loadUserCustom(denops, { reload: true, verbose: true });
+ * ```
  */
 export function loadUserCustom(
   denops: Denops,
@@ -144,7 +199,26 @@ export function loadUserCustom(
 }
 
 /**
- * Recache user custom by running `deno cache --reload` command.
+ * Recaches the user custom file and its dependencies.
+ *
+ * This function runs `deno cache --reload` on the custom file to:
+ * - Download and update all dependencies
+ * - Recompile TypeScript code
+ * - Clear the module cache
+ *
+ * After recaching, Vim must be restarted for changes to take effect.
+ *
+ * @param denops - The Denops instance
+ * @param options - Recache options
+ * @param options.verbose - Show cache progress
+ * @param options.signal - AbortSignal to cancel the operation
+ * @returns A promise that resolves when recaching is complete
+ *
+ * @example
+ * ```typescript
+ * // Recache with progress output
+ * await recacheUserCustom(denops, { verbose: true });
+ * ```
  */
 export async function recacheUserCustom(
   denops: Denops,
@@ -199,14 +273,32 @@ export async function recacheUserCustom(
 }
 
 /**
- * Get global custom.
+ * Gets the current global settings.
+ *
+ * @returns The current setting configuration including theme and coordinator
+ *
+ * @example
+ * ```typescript
+ * const settings = getSetting();
+ * console.log("Current theme:", settings.theme);
+ * ```
  */
 export function getSetting(): Readonly<Setting> {
   return setting;
 }
 
 /**
- * Get action picker params.
+ * Gets the current action picker parameters.
+ *
+ * Action pickers are used for selecting actions to perform on items.
+ *
+ * @returns The current action picker configuration
+ *
+ * @example
+ * ```typescript
+ * const params = getActionPickerParams();
+ * console.log("Action picker matchers:", params.matchers);
+ * ```
  */
 export function getActionPickerParams(): Readonly<
   ActionPickerParams
@@ -215,7 +307,18 @@ export function getActionPickerParams(): Readonly<
 }
 
 /**
- * Get item picker params.
+ * Gets the parameters for a specific picker by name.
+ *
+ * @param name - The name of the picker
+ * @returns The picker parameters if found, undefined otherwise
+ *
+ * @example
+ * ```typescript
+ * const filePickerParams = getPickerParams("file");
+ * if (filePickerParams) {
+ *   console.log("File picker source:", filePickerParams.source);
+ * }
+ * ```
  */
 export function getPickerParams(
   name: string,
@@ -228,18 +331,42 @@ export function getPickerParams(
 }
 
 /**
- * List item picker names.
+ * Lists all registered picker names.
+ *
+ * @returns An array of all registered picker names
+ *
+ * @example
+ * ```typescript
+ * const pickers = listPickerNames();
+ * console.log("Available pickers:", pickers);
+ * // Output: ["file", "grep", "buffer", ...]
+ * ```
  */
 export function listPickerNames(): readonly string[] {
   return Array.from(pickerParamsMap.keys());
 }
 
+/**
+ * Resets all custom configurations to their defaults.
+ * This is called before loading/reloading custom configurations.
+ */
 function reset(): void {
   setting = { ...defaultSetting };
   actionPickerParams = { ...defaultActionPickerParams };
   pickerParamsMap.clear();
 }
 
+/**
+ * Builds the context object passed to custom configuration files.
+ *
+ * This context provides APIs for:
+ * - Refining global settings
+ * - Configuring action pickers
+ * - Defining new pickers from sources or curators
+ *
+ * @param denops - The Denops instance
+ * @returns The configuration context object
+ */
 function buildContext(denops: Denops): {
   denops: Denops;
   refineSetting: ReturnType<typeof buildRefineSetting>;
@@ -266,6 +393,13 @@ function buildContext(denops: Denops): {
   };
 }
 
+/**
+ * Gets the URL of the user custom file from g:fall_custom_path.
+ *
+ * @param denops - The Denops instance
+ * @returns The file URL of the custom configuration
+ * @throws Error if g:fall_custom_path is not set or invalid
+ */
 async function getUserCustomUrl(denops: Denops): Promise<URL> {
   try {
     const path = await vars.g.get(denops, "fall_custom_path") as string;
@@ -277,6 +411,12 @@ async function getUserCustomUrl(denops: Denops): Promise<URL> {
   }
 }
 
+/**
+ * Validates a picker name to ensure it's valid and not already used.
+ *
+ * @param name - The picker name to validate
+ * @throws ExpectedError if the name is invalid or already exists
+ */
 function validatePickerName(name: string): void {
   if (pickerParamsMap.has(name)) {
     throw new ExpectedError(`Picker '${name}' is already defined.`);
@@ -286,6 +426,12 @@ function validatePickerName(name: string): void {
   }
 }
 
+/**
+ * Validates action names to ensure they don't use reserved prefixes.
+ *
+ * @param actions - The actions object to validate
+ * @throws ExpectedError if any action name starts with '@'
+ */
 function validateActions(actions: Record<PropertyKey, unknown>): void {
   Object.keys(actions).forEach((name) => {
     if (name.startsWith("@")) {
