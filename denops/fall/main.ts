@@ -1,6 +1,6 @@
 import "./lib/polyfill.ts";
 
-import type { Entrypoint } from "jsr:@denops/std@^7.3.2";
+import type { Entrypoint } from "@denops/std";
 
 import { main as mainCustom } from "./main/custom.ts";
 import { main as mainEvent } from "./main/event.ts";

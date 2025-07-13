@@ -1,4 +1,4 @@
-import type { Action } from "jsr:@vim-fall/core@^0.3.0/action";
+import type { Action } from "@vim-fall/core/action";
 import type { Detail } from "../source/session.ts";
 
 export const defaultSessionActions = {

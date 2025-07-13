@@ -1,5 +1,5 @@
-import type { Detail, IdItem } from "jsr:@vim-fall/core@^0.3.0/item";
-import type { Source } from "jsr:@vim-fall/core@^0.3.0/source";
+import type { Detail, IdItem } from "@vim-fall/core/item";
+import type { Source } from "@vim-fall/core/source";
 
 /**
  * Create a source from a list

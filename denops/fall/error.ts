@@ -1,5 +1,5 @@
-import type { Denops } from "jsr:@denops/std@^7.3.2";
-import { AssertError } from "jsr:@core/unknownutil@^4.3.0/assert";
+import type { Denops } from "@denops/std";
+import { AssertError } from "@core/unknownutil/assert";
 
 /**
  * Application error that is used to represent an expected error.

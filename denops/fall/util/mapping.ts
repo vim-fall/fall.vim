@@ -1,7 +1,7 @@
-import type { Denops } from "jsr:@denops/std@^7.3.2";
-import * as mapping from "jsr:@denops/std@^7.3.2/mapping";
-import { chunked } from "jsr:@core/iterutil@^0.9.0/chunked";
-import { range } from "jsr:@core/iterutil@^0.9.0/range";
+import type { Denops } from "@denops/std";
+import * as mapping from "@denops/std/mapping";
+import { chunked } from "@core/iterutil/chunked";
+import { range } from "@core/iterutil/range";
 
 import type { Page } from "../component/help.ts";
 import { getByteLength } from "../lib/stringutil.ts";

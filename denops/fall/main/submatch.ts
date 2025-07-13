@@ -1,5 +1,5 @@
-import type { Denops, Entrypoint } from "jsr:@denops/std@^7.3.2";
-import { as, assert, is, type Predicate } from "jsr:@core/unknownutil@^4.3.0";
+import type { Denops, Entrypoint } from "@denops/std";
+import { as, assert, is, type Predicate } from "@core/unknownutil";
 import type {
   Coordinator,
   Detail,
@@ -9,7 +9,7 @@ import type {
   Renderer,
   Sorter,
   Theme,
-} from "jsr:@vim-fall/core@^0.3.0";
+} from "@vim-fall/core";
 
 import type { PickerParams } from "../custom.ts";
 import {

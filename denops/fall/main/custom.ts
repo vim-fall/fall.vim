@@ -1,5 +1,5 @@
-import type { Entrypoint } from "jsr:@denops/std@^7.3.2";
-import { as, assert, is } from "jsr:@core/unknownutil@^4.3.0";
+import type { Entrypoint } from "@denops/std";
+import { as, assert, is } from "@core/unknownutil";
 
 import {
   editUserCustom,

@@ -17,5 +17,6 @@
     "update": "deno run --allow-env --allow-read --allow-write=. --allow-run=git,deno --allow-net=deno.land,jsr.io,registry.npmjs.org jsr:@molt/cli ./**/*.ts",
     "update:write": "deno task -q update --write",
     "update:commit": "deno task -q update --commit --prefix :package: --pre-commit=fmt,lint"
-  }
+  },
+  "importMap": "./denops/fall/import_map.json"
 }

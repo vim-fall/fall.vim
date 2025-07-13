@@ -1,6 +1,6 @@
-import { assertEquals } from "jsr:@std/assert@^1.0.6";
-import { delay } from "jsr:@std/async@^1.0.0/delay";
-import { FakeTime } from "jsr:@std/testing@^1.0.0/time";
+import { assertEquals } from "@std/assert";
+import { delay } from "@std/async/delay";
+import { FakeTime } from "@std/testing/time";
 
 import { debounce } from "./debounce.ts";
 

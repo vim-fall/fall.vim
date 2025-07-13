@@ -1,10 +1,6 @@
-import type { Denops } from "jsr:@denops/std@^7.3.2";
-import type {
-  Detail,
-  DisplayItem,
-  IdItem,
-} from "jsr:@vim-fall/core@^0.3.0/item";
-import type { Renderer } from "jsr:@vim-fall/core@^0.3.0/renderer";
+import type { Denops } from "@denops/std";
+import type { Detail, DisplayItem, IdItem } from "@vim-fall/core/item";
+import type { Renderer } from "@vim-fall/core/renderer";
 
 import { adjustOffset } from "../lib/adjust_offset.ts";
 import { ItemBelt } from "../lib/item_belt.ts";

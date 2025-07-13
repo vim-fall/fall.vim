@@ -16,7 +16,7 @@ export type DebounceOptions = {
  * @example
  * ```ts
  * import { debounce } from "./debounce.ts";
- * import { delay } from "jsr:@std/async@^1.0.0/delay";
+ * import { delay } from "@std/async/delay";
  *
  * const saveData = () => console.log("Saving data...");
  * const debouncedSave = debounce(() => saveData(), { delay: 100 });

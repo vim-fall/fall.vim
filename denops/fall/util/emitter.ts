@@ -1,5 +1,5 @@
-import type { Denops } from "jsr:@denops/std@^7.3.2";
-import { emit } from "jsr:@denops/std@^7.3.2/autocmd";
+import type { Denops } from "@denops/std";
+import { emit } from "@denops/std/autocmd";
 
 /**
  * Emit `User FallPickerEnterSystem:{name}` autocmd.

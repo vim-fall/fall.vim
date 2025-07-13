@@ -1,4 +1,4 @@
-import { as, is, type Predicate } from "jsr:@core/unknownutil@^4.3.0";
+import { as, is, type Predicate } from "@core/unknownutil";
 import type {
   Action,
   Coordinator,
@@ -10,7 +10,7 @@ import type {
   Sorter,
   Source,
   Theme,
-} from "jsr:@vim-fall/core@^0.3.0";
+} from "@vim-fall/core";
 
 import type { PickerParams, Setting } from "../custom.ts";
 

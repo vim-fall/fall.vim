@@ -1,9 +1,6 @@
-import type { Denops } from "jsr:@denops/std@^7.3.2";
-import type { Detail, PreviewItem } from "jsr:@vim-fall/core@^0.3.0/item";
-import type {
-  Previewer,
-  PreviewParams,
-} from "jsr:@vim-fall/core@^0.3.0/previewer";
+import type { Denops } from "@denops/std";
+import type { Detail, PreviewItem } from "@vim-fall/core/item";
+import type { Previewer, PreviewParams } from "@vim-fall/core/previewer";
 
 import { ItemBelt } from "../lib/item_belt.ts";
 import { dispatch } from "../event.ts";

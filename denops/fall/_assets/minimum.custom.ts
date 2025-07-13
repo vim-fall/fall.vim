@@ -1,5 +1,5 @@
-import type { Entrypoint } from "jsr:@vim-fall/custom@^0.1.0";
-import * as builtin from "jsr:@vim-fall/std@^0.10.0/builtin";
+import type { Entrypoint } from "@vim-fall/custom";
+import * as builtin from "@vim-fall/std/builtin";
 
 export const main: Entrypoint = ({
   definePickerFromSource,

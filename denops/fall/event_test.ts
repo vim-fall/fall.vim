@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@^1.0.6";
+import { assertEquals } from "@std/assert";
 
 import { consume, dispatch, type Event } from "./event.ts";
 

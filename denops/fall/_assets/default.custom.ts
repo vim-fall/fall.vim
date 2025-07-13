@@ -1,11 +1,7 @@
-import type { Entrypoint } from "jsr:@vim-fall/custom@^0.1.0";
-import {
-  composeRenderers,
-  refineCurator,
-  refineSource,
-} from "jsr:@vim-fall/std@^0.10.0";
-import * as builtin from "jsr:@vim-fall/std@^0.10.0/builtin";
-import { SEPARATOR } from "jsr:@std/path@^1.0.8/constants";
+import type { Entrypoint } from "@vim-fall/custom";
+import { composeRenderers, refineCurator, refineSource } from "@vim-fall/std";
+import * as builtin from "@vim-fall/std/builtin";
+import { SEPARATOR } from "@std/path/constants";
 
 // NOTE:
 //

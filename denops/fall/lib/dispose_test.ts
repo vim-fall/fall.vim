@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@^1.0.8";
+import { assertEquals } from "@std/assert";
 import { dispose } from "./dispose.ts";
 
 Deno.test("dispose", async (t) => {

@@ -1,6 +1,6 @@
-import type { PreviewItem } from "jsr:@vim-fall/core@^0.3.0/item";
-import type { Previewer } from "jsr:@vim-fall/core@^0.3.0/previewer";
-import { definePreviewer } from "jsr:@vim-fall/std@^0.10.0/previewer";
+import type { PreviewItem } from "@vim-fall/core/item";
+import type { Previewer } from "@vim-fall/core/previewer";
+import { definePreviewer } from "@vim-fall/std/previewer";
 import type { Detail } from "../source/session.ts";
 
 export function session(): Previewer<Detail> {

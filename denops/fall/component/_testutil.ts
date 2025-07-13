@@ -1,9 +1,9 @@
-import type { Denops } from "jsr:@denops/std@^7.3.2";
-import * as fn from "jsr:@denops/std@^7.3.2/function";
-import { collect } from "jsr:@denops/std@^7.3.2/batch";
-import * as iterutil from "jsr:@core/iterutil@^0.9/pipe";
-import { range } from "jsr:@core/iterutil@^0.9.0";
-import { pipe } from "jsr:@core/pipe@^0.4.0";
+import type { Denops } from "@denops/std";
+import * as fn from "@denops/std/function";
+import { collect } from "@denops/std/batch";
+import * as iterutil from "@core/iterutil/pipe";
+import { range } from "@core/iterutil";
+import { pipe } from "@core/pipe";
 
 /**
  * Get screen text in the specified range.

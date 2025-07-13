@@ -1,5 +1,5 @@
-import { assertEquals } from "jsr:@std/assert@^1.0.6";
-import { DenopsStub } from "jsr:@denops/test@^3.0.4";
+import { assertEquals } from "@std/assert";
+import { DenopsStub } from "@denops/test";
 
 import { consume, type Event } from "../event.ts";
 import { Cmdliner } from "./cmdliner.ts";

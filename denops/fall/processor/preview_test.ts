@@ -1,15 +1,11 @@
 import "../lib/polyfill.ts";
 
-import { assertEquals, assertThrows } from "jsr:@std/assert@^1.0.7";
-import { DenopsStub } from "jsr:@denops/test@^3.0.4";
-import { Notify } from "jsr:@core/asyncutil@^1.2.0";
-import { flushPromises } from "jsr:@core/asyncutil@^1.2.0";
-import {
-  type DetailUnit,
-  type IdItem,
-  type Previewer,
-} from "jsr:@vim-fall/core@^0.3.0";
-import { definePreviewer } from "jsr:@vim-fall/std@^0.10.0";
+import { assertEquals, assertThrows } from "@std/assert";
+import { DenopsStub } from "@denops/test";
+import { Notify } from "@core/asyncutil";
+import { flushPromises } from "@core/asyncutil";
+import { type DetailUnit, type IdItem, type Previewer } from "@vim-fall/core";
+import { definePreviewer } from "@vim-fall/std";
 
 import { dispose } from "../lib/dispose.ts";
 import { PreviewProcessor } from "./preview.ts";

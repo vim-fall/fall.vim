@@ -1,4 +1,4 @@
-import type { Detail } from "jsr:@vim-fall/core@^0.3.0/item";
+import type { Detail } from "@vim-fall/core/item";
 
 import type { PickerContext } from "./picker.ts";
 

@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@^1.0.0";
+import { assertEquals } from "@std/assert";
 import { UniqueOrderedList } from "./unique_ordered_list.ts";
 
 type User = { id: number; name: string };

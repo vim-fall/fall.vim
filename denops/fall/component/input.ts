@@ -1,7 +1,7 @@
-import type { Denops } from "jsr:@denops/std@^7.3.2";
-import * as fn from "jsr:@denops/std@^7.3.2/function";
-import * as buffer from "jsr:@denops/std@^7.3.2/buffer";
-import type { Dimension } from "jsr:@vim-fall/core@^0.3.0/coordinator";
+import type { Denops } from "@denops/std";
+import * as fn from "@denops/std/function";
+import * as buffer from "@denops/std/buffer";
+import type { Dimension } from "@vim-fall/core/coordinator";
 
 import { Spinner, UNICODE_SPINNER } from "../lib/spinner.ts";
 import { adjustOffset } from "../lib/adjust_offset.ts";

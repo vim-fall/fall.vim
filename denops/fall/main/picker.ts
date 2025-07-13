@@ -1,7 +1,7 @@
-import type { Denops, Entrypoint } from "jsr:@denops/std@^7.3.2";
-import { ensurePromise } from "jsr:@core/asyncutil@^1.2.0/ensure-promise";
-import { assert, is } from "jsr:@core/unknownutil@^4.3.0";
-import type { Detail } from "jsr:@vim-fall/core@^0.3.0/item";
+import type { Denops, Entrypoint } from "@denops/std";
+import { ensurePromise } from "@core/asyncutil/ensure-promise";
+import { assert, is } from "@core/unknownutil";
+import type { Detail } from "@vim-fall/core/item";
 
 import type { PickerParams } from "../custom.ts";
 import {
@@ -144,7 +144,7 @@ export const main: Entrypoint = (denops) => {
     "picker:session:command": withHandleError(denops, async () => {
       await loadUserCustom(denops);
       const { substring } = await import(
-        "jsr:@vim-fall/std@^0.10.0/builtin/matcher/substring"
+        "@vim-fall/std/builtin/matcher/substring"
       );
       const setting = getSetting();
       const sessionPickerParams = {

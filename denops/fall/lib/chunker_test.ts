@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from "jsr:@std/assert@^1.0.7";
+import { assertEquals, assertThrows } from "@std/assert";
 import { Chunker } from "./chunker.ts";
 
 Deno.test("Chunker", async (t) => {

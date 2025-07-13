@@ -1,5 +1,5 @@
-import { assertEquals, assertExists } from "jsr:@std/assert@^1.0.8";
-import type { Detail, IdItem } from "jsr:@vim-fall/core@^0.3.0/item";
+import { assertEquals, assertExists } from "@std/assert";
+import type { Detail, IdItem } from "@vim-fall/core/item";
 
 import {
   listPickerSessions,

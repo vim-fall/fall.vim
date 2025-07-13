@@ -1,9 +1,9 @@
 import "../lib/polyfill.ts";
 
-import { test } from "jsr:@denops/test@^3.0.4";
-import * as fn from "jsr:@denops/std@^7.3.2/function";
-import { fromFileUrl } from "jsr:@std/path@^1.0.8/from-file-url";
-import { assertEquals } from "jsr:@std/assert@^1.0.6";
+import { test } from "@denops/test";
+import * as fn from "@denops/std/function";
+import { fromFileUrl } from "@std/path/from-file-url";
+import { assertEquals } from "@std/assert";
 
 import { HelpComponent } from "./help.ts";
 

@@ -1,11 +1,11 @@
 import "../lib/polyfill.ts";
 
-import { assertEquals, assertThrows } from "jsr:@std/assert@^1.0.7";
-import { DenopsStub } from "jsr:@denops/test@^3.0.4";
-import { Notify } from "jsr:@core/asyncutil@^1.2.0";
-import { flushPromises } from "jsr:@core/asyncutil@^1.2.0";
-import type { Source } from "jsr:@vim-fall/core@^0.3.0";
-import { defineSource } from "jsr:@vim-fall/std@^0.10.0";
+import { assertEquals, assertThrows } from "@std/assert";
+import { DenopsStub } from "@denops/test";
+import { Notify } from "@core/asyncutil";
+import { flushPromises } from "@core/asyncutil";
+import type { Source } from "@vim-fall/core";
+import { defineSource } from "@vim-fall/std";
 
 import { dispose } from "../lib/dispose.ts";
 import { CollectProcessor } from "./collect.ts";

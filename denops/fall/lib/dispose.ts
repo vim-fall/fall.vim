@@ -1,5 +1,5 @@
-import { isObjectOf } from "jsr:@core/unknownutil@^4.3.0/is/object-of";
-import { isFunction } from "jsr:@core/unknownutil@^4.3.0/is/function";
+import { isObjectOf } from "@core/unknownutil/is/object-of";
+import { isFunction } from "@core/unknownutil/is/function";
 
 const isDisposable = isObjectOf({
   [Symbol.dispose]: isFunction,

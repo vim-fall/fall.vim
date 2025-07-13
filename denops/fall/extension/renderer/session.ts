@@ -1,6 +1,6 @@
-import type { Denops } from "jsr:@denops/std@^7.3.2";
-import type { Renderer } from "jsr:@vim-fall/core@^0.3.0/renderer";
-import type { DisplayItem } from "jsr:@vim-fall/core@^0.3.0/item";
+import type { Denops } from "@denops/std";
+import type { Renderer } from "@vim-fall/core/renderer";
+import type { DisplayItem } from "@vim-fall/core/item";
 import type { Detail } from "../source/session.ts";
 
 export function session(): Renderer<Detail> {

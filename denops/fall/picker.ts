@@ -1,21 +1,17 @@
-import type { Denops } from "jsr:@denops/std@^7.3.2";
-import * as opt from "jsr:@denops/std@^7.3.2/option";
-import * as autocmd from "jsr:@denops/std@^7.3.2/autocmd";
-import * as lambda from "jsr:@denops/std@^7.3.2/lambda";
-import { collect } from "jsr:@denops/std@^7.3.2/batch";
-import { unreachable } from "jsr:@core/errorutil@^1.2.0/unreachable";
-import type { Detail, IdItem } from "jsr:@vim-fall/core@^0.3.0/item";
-import type {
-  Coordinator,
-  Dimension,
-  Size,
-} from "jsr:@vim-fall/core@^0.3.0/coordinator";
-import type { Source } from "jsr:@vim-fall/core@^0.3.0/source";
-import type { Matcher } from "jsr:@vim-fall/core@^0.3.0/matcher";
-import type { Sorter } from "jsr:@vim-fall/core@^0.3.0/sorter";
-import type { Renderer } from "jsr:@vim-fall/core@^0.3.0/renderer";
-import type { Previewer } from "jsr:@vim-fall/core@^0.3.0/previewer";
-import type { Theme } from "jsr:@vim-fall/core@^0.3.0/theme";
+import type { Denops } from "@denops/std";
+import * as opt from "@denops/std/option";
+import * as autocmd from "@denops/std/autocmd";
+import * as lambda from "@denops/std/lambda";
+import { collect } from "@denops/std/batch";
+import { unreachable } from "@core/errorutil/unreachable";
+import type { Detail, IdItem } from "@vim-fall/core/item";
+import type { Coordinator, Dimension, Size } from "@vim-fall/core/coordinator";
+import type { Source } from "@vim-fall/core/source";
+import type { Matcher } from "@vim-fall/core/matcher";
+import type { Sorter } from "@vim-fall/core/sorter";
+import type { Renderer } from "@vim-fall/core/renderer";
+import type { Previewer } from "@vim-fall/core/previewer";
+import type { Theme } from "@vim-fall/core/theme";
 
 import { Scheduler } from "./lib/scheduler.ts";
 import { debounce } from "./lib/debounce.ts";

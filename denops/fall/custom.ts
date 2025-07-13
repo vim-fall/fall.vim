@@ -1,30 +1,27 @@
-import type { Denops } from "jsr:@denops/std@^7.3.2";
-import * as buffer from "jsr:@denops/std@^7.3.2/buffer";
-import * as vars from "jsr:@denops/std@^7.3.2/variable";
-import * as autocmd from "jsr:@denops/std@^7.3.2/autocmd";
-import { TextLineStream } from "jsr:@std/streams@^1.0.8/text-line-stream";
-import { mergeReadableStreams } from "jsr:@std/streams@^1.0.8/merge-readable-streams";
-import { toFileUrl } from "jsr:@std/path@^1.0.8/to-file-url";
-import { fromFileUrl } from "jsr:@std/path@^1.0.8/from-file-url";
-import { dirname } from "jsr:@std/path@^1.0.8/dirname";
-import { copy } from "jsr:@std/fs@^1.0.5/copy";
-import {
-  buildRefineSetting,
-  type Setting,
-} from "jsr:@vim-fall/custom@^0.1.0/setting";
+import type { Denops } from "@denops/std";
+import * as buffer from "@denops/std/buffer";
+import * as vars from "@denops/std/variable";
+import * as autocmd from "@denops/std/autocmd";
+import { TextLineStream } from "@std/streams/text-line-stream";
+import { mergeReadableStreams } from "@std/streams/merge-readable-streams";
+import { toFileUrl } from "@std/path/to-file-url";
+import { fromFileUrl } from "@std/path/from-file-url";
+import { dirname } from "@std/path/dirname";
+import { copy } from "@std/fs/copy";
+import { buildRefineSetting, type Setting } from "@vim-fall/custom/setting";
 import {
   type ActionPickerParams,
   buildRefineActionPicker,
-} from "jsr:@vim-fall/custom@^0.1.0/action-picker";
+} from "@vim-fall/custom/action-picker";
 import {
   buildDefinePickerFromCurator,
   buildDefinePickerFromSource,
   type PickerParams,
-} from "jsr:@vim-fall/custom@^0.1.0/picker";
+} from "@vim-fall/custom/picker";
 
-import { modern } from "jsr:@vim-fall/std@^0.10.0/builtin/coordinator/modern";
-import { MODERN_THEME } from "jsr:@vim-fall/std@^0.10.0/builtin/theme/modern";
-import { fzf } from "jsr:@vim-fall/std@^0.10.0/builtin/matcher/fzf";
+import { modern } from "@vim-fall/std/builtin/coordinator/modern";
+import { MODERN_THEME } from "@vim-fall/std/builtin/theme/modern";
+import { fzf } from "@vim-fall/std/builtin/matcher/fzf";
 
 import { ExpectedError } from "./error.ts";
 

@@ -1,5 +1,5 @@
-import type { Entrypoint } from "jsr:@denops/std@^7.3.2";
-import { as, ensure, is, type Predicate } from "jsr:@core/unknownutil@^4.3.0";
+import type { Entrypoint } from "@denops/std";
+import { as, ensure, is, type Predicate } from "@core/unknownutil";
 
 import { dispatch, type Event } from "../event.ts";
 import { withHandleError } from "../error.ts";

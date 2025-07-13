@@ -1,7 +1,7 @@
-import type { Denops } from "jsr:@denops/std@^7.3.2";
-import * as popup from "jsr:@denops/std@^7.3.2/popup";
-import type { Border } from "jsr:@vim-fall/core@^0.3.0/theme";
-import type { Dimension } from "jsr:@vim-fall/core@^0.3.0/coordinator";
+import type { Denops } from "@denops/std";
+import * as popup from "@denops/std/popup";
+import type { Border } from "@vim-fall/core/theme";
+import type { Dimension } from "@vim-fall/core/coordinator";
 
 const HIGHLIGHT_NORMAL = "FallNormal";
 const HIHGLIGHT_BORDER = "FallBorder";

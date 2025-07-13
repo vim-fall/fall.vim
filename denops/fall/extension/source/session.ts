@@ -1,5 +1,5 @@
-import type { Source } from "jsr:@vim-fall/core@^0.3.0/source";
-import type { DetailUnit, IdItem } from "jsr:@vim-fall/core@^0.3.0/item";
+import type { Source } from "@vim-fall/core/source";
+import type { DetailUnit, IdItem } from "@vim-fall/core/item";
 import type { PickerSession } from "../../session.ts";
 import { listPickerSessions } from "../../session.ts";
 
