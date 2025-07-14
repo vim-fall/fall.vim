@@ -18,5 +18,7 @@
     "update:write": "deno task -q update --write",
     "update:commit": "deno task -q update --commit --prefix :package: --pre-commit=fmt,lint"
   },
-  "importMap": "./denops/fall/import_map.json"
+  "workspace": [
+    "./denops/fall"
+  ]
 }
