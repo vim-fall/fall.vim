@@ -187,13 +187,13 @@ For example:
 -------------------------------------------------------------------------------
 SIGN				*fall-configuration-sign*
 
-Use FallXXXXX sign groups to configure the picker window appearance. See
+Use FallXXXXXSign sign groups to configure the picker window appearance. See
 |fall-sign| for a list of available sign groups.
 
 For example:
 >vim
 	function! s:my_fall_style() abort
-	  sign define FallListSelected text=*
+	  sign define FallListSelectedSign text=*
 	endfunction
 
 	augroup fall_plugin_style
@@ -643,7 +643,7 @@ HIGHLIGHT					*fall-highlight*
 -----------------------------------------------------------------------------
 SIGN						*fall-sign*
 
-*FallListSelected*
+*FallListSelectedSign*
 	Indicator sign for the selected item in the list component.
 	Default to "»".
 

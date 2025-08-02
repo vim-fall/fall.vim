@@ -20,7 +20,7 @@ function! s:init() abort
   " List
   highlight default link FallListMatch Search
   highlight default link FallListSelected CurSearch
-  sign define FallListSelected text=≫
+  sign define FallListSelectedSign text=≫
 
   " Help
   highlight default link FallHelpHeader Conceal
