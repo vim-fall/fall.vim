@@ -8,8 +8,8 @@ import type { Dimension } from "jsr:@vim-fall/core@^0.3.0/coordinator";
 import { BaseComponent, ComponentProperties } from "./_component.ts";
 
 export const HIGHLIGHT_MATCH = "FallListMatch";
-export const SIGN_GROUP_SELECTED = "PopUpFallListSelected";
-export const SIGN_SELECTED = "FallListSelected";
+export const SIGN_GROUP_SELECTED = "PopUpFallListSelectedSign";
+export const SIGN_SELECTED = "FallListSelectedSign";
 
 /**
  * Type representing the decoration properties of an item,
