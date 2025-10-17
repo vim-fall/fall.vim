@@ -66,6 +66,15 @@ To filter lines within the current buffer, use the "line" source:
 >
 	:Fall line
 <
+To set an initial input value for the prompt, use the "-input=" option before
+the source name:
+>
+	:Fall -input="Hello world" file
+<
+This is useful for starting with a pre-filled search query. If you need to
+include spaces in the input, use quotes around the value. Note that the
+"-input=" option must appear before the source name to take effect.
+
 Sources are defined in "custom.ts" via |:FallCustom|. In default "custom.ts",
 the following sources are defined:
 
@@ -398,15 +407,31 @@ INTERFACE					*fall-interface*
 COMMAND						*fall-command*
 
 						*:Fall*
-:Fall {source} [{cmdarg}]
+:Fall [-input={value}] {source} [{cmdarg}...]
 	Open picker to filter {source} (defined in "custom.ts" via
 	|:FallCustom|). {cmdarg} is passed to the source.
+
+	The "-input=" option sets the initial input value for the picker's
+	prompt. This is useful for starting with a pre-filled search query.
+	When the value contains spaces, enclose it in quotes.
+
+	Note: The "-input=" option must appear BEFORE the source name.
+	Options after the source name are treated as source arguments.
 >
 	" Open picker to filter files in the current directory
 	:Fall file
 
 	" Open picker to filter files in the specified directory
 	:Fall file /path/to/directory
+
+	" Open picker with initial input value
+	:Fall -input="Hello world" file
+
+	" Combine with source arguments
+	:Fall -input="search term" grep /path/to/dir
+
+	" Invalid: -input= after source name (treated as source argument)
+	:Fall file -input="test"
 <
 
 						*:FallResume*

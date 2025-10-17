@@ -4,8 +4,8 @@ endif
 let g:loaded_fall = 1
 let s:sep = has('win32') ? '\' : '/'
 
-command! -nargs=+ -complete=customlist,fall#command#Fall#complete 
-      \ Fall call fall#command#Fall#call([<f-args>])
+command! -nargs=+ -complete=customlist,fall#command#Fall#complete
+      \ Fall call fall#command#Fall#call(<q-args>)
 command! -nargs=? -complete=customlist,fall#command#FallResume#complete
       \ FallResume call fall#command#FallResume#call(<q-args>)
 command! -nargs=0 FallSession call fall#command#FallSession#call()
