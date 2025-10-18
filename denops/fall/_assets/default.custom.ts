@@ -3,8 +3,8 @@ import {
   composeRenderers,
   refineCurator,
   refineSource,
-} from "jsr:@vim-fall/std@^0.10.0";
-import * as builtin from "jsr:@vim-fall/std@^0.10.0/builtin";
+} from "jsr:@vim-fall/std@^0.13.0";
+import * as builtin from "jsr:@vim-fall/std@^0.13.0/builtin";
 import { SEPARATOR } from "jsr:@std/path@^1.0.8/constants";
 
 // NOTE:
