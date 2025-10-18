@@ -50,7 +50,9 @@ export class MatchProcessor<T extends Detail> implements Disposable {
     this.#chunkInterval = options.chunkInterval ?? CHUNK_INTERVAL;
     this.#incremental = options.incremental ?? false;
     this.#items = options.initialItems?.slice() ?? [];
-    this.#previousQuery = options.initialQuery;
+    // Do not set initialQuery to #previousQuery to ensure the first matching
+    // is executed when the initial query is provided via -input= option.
+    this.#previousQuery = undefined;
   }
 
   get #matcher(): Matcher<T> {
