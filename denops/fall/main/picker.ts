@@ -1,6 +1,6 @@
 import type { Denops, Entrypoint } from "jsr:@denops/std@^7.3.2";
 import { ensurePromise } from "jsr:@core/asyncutil@^1.2.0/ensure-promise";
-import { assert, ensure, is } from "jsr:@core/unknownutil@^4.3.0";
+import { assert, is } from "jsr:@core/unknownutil@^4.3.0";
 import type { Detail } from "jsr:@vim-fall/core@^0.3.0/item";
 
 import type { PickerParams } from "../custom.ts";
@@ -12,6 +12,7 @@ import {
   loadUserCustom,
 } from "../custom.ts";
 import { isOptions, isPickerParams, isStringArray } from "../util/predicate.ts";
+import { extractOption, parseArgs } from "../util/args.ts";
 import { action as buildActionSource } from "../extension/source/action.ts";
 import { Picker, type PickerContext } from "../picker.ts";
 import type { SubmatchContext } from "./submatch.ts";
@@ -34,6 +35,32 @@ const SESSION_EXCLUDE_SOURCES = [
   "@session",
 ];
 
+/**
+ * Create initial picker context with the specified query.
+ *
+ * All fields except query are initialized to their default values:
+ * - Empty selection, collections, and filtered items
+ * - Cursor and offset at 0
+ * - All component indices at 0 (except previewerIndex which is undefined)
+ *
+ * @param query - Initial query string for the picker prompt
+ * @returns PickerContext with default values
+ */
+function createInitialContext(query: string): PickerContext<Detail> {
+  return {
+    query,
+    selection: new Set(),
+    collectedItems: [],
+    filteredItems: [],
+    cursor: 0,
+    offset: 0,
+    matcherIndex: 0,
+    sorterIndex: 0,
+    rendererIndex: 0,
+    previewerIndex: undefined,
+  };
+}
+
 export const main: Entrypoint = (denops) => {
   denops.dispatcher = {
     ...denops.dispatcher,
@@ -43,12 +70,36 @@ export const main: Entrypoint = (denops) => {
       assert(options, isOptions);
       return startPicker(denops, args, itemPickerParams, options);
     },
-    "picker:command": withHandleError(denops, async (args) => {
+    "picker:command": withHandleError(denops, async (cmdline) => {
       await loadUserCustom(denops);
-      // Split the command arguments
-      const [name, ...sourceArgs] = ensure(args, isStringArray);
 
-      // Load user custom
+      // Parse command line arguments
+      // cmdline is string from denops#request('fall', 'picker:command', [a:args])
+      assert(cmdline, is.String);
+      const allArgs = parseArgs(cmdline);
+
+      // Find the first non-option argument (source name)
+      const sourceIndex = allArgs.findIndex((arg) => !arg.startsWith("-"));
+      if (sourceIndex === -1) {
+        throw new ExpectedError(
+          `Picker name is required. Available item pickers are: ${
+            listPickerNames().join(", ")
+          }`,
+        );
+      }
+
+      // Extract -input= option only from arguments before the source name
+      const beforeSourceArgs = allArgs.slice(0, sourceIndex);
+      const afterSourceArgs = allArgs.slice(sourceIndex);
+      const [inputValues] = extractOption(beforeSourceArgs, "-input=");
+      const initialQuery = inputValues.at(-1);
+      // Note: Currently only -input= is supported. Other options before
+      // the source name are silently ignored for future extensibility.
+
+      // Get source name and its arguments
+      const [name, ...sourceArgs] = afterSourceArgs;
+
+      // Load picker params
       const itemPickerParams = getPickerParams(name);
       if (!itemPickerParams) {
         throw new ExpectedError(
@@ -57,11 +108,17 @@ export const main: Entrypoint = (denops) => {
           }`,
         );
       }
+
+      // Create context with initial query if specified
+      const context = initialQuery !== undefined
+        ? createInitialContext(initialQuery)
+        : undefined;
+
       await startPicker(
         denops,
         sourceArgs,
         itemPickerParams,
-        { signal: denops.interrupted },
+        { signal: denops.interrupted, context },
       );
     }),
     "picker:command:complete": withHandleError(

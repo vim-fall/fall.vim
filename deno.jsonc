@@ -4,6 +4,11 @@
     ".coverage/**",
     ".worktrees/**"
   ],
+  "lint": {
+    "rules": {
+      "exclude": ["no-import-prefix"]
+    }
+  },
   "tasks": {
     "check": "deno check ./**/*.ts",
     "test": "deno test -A --parallel --shuffle --doc",
