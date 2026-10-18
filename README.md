@@ -6,6 +6,14 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Vim Help](https://img.shields.io/badge/vim-%3Ah%20fall-orange.svg)](doc/fall.txt)
 
+> [!IMPORTANT]
+>
+> Fall is no longer developed and this repository will be archived. Its
+> successor is [vim-lese](https://github.com/lambdalisue/vim-lese), a fuzzy
+> finder for Vim and Neovim written in Lua. It needs neither Deno nor Denops,
+> and it keeps Fall's design: pickers built from sources, matchers, sorters,
+> renderers, previewers and actions, declared in one `custom.lua`.
+
 <div align="center">
 
 ![vim-fall's screencast](https://github.com/user-attachments/assets/c4f3d336-073c-44e2-ba36-2f7e282b78b7)<br>
